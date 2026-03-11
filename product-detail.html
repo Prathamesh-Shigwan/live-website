@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Detail — HitShi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{--green:#00e676;--teal:#00bcd4;--accent:#76ff03;--warn:#ffea00;--dark:#050e0a;--dark2:#0a1a12;--mid:#112318;--mid2:#0d1c14;--text:#c8e6c9;--border:rgba(0,230,118,.1);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none;}
+#cursor{width:10px;height:10px;background:var(--accent);border-radius:50%;position:fixed;z-index:9999;pointer-events:none;top:0;left:0;mix-blend-mode:exclusion;}
+#cursor-ring{width:36px;height:36px;border:1.5px solid var(--green);border-radius:50%;position:fixed;z-index:9998;pointer-events:none;top:0;left:0;mix-blend-mode:exclusion;transition:width .3s,height .3s,border-color .3s;}
+body.hov #cursor-ring{width:60px;height:60px;border-color:var(--accent);}
+#bg-canvas{position:fixed;inset:0;z-index:0;opacity:.22;pointer-events:none;}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:500;padding:1.1rem 3rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(5,14,10,.65);border-bottom:1px solid var(--border);transition:background .4s;}
+nav.scrolled{background:rgba(5,14,10,.97);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.45rem;color:var(--accent);letter-spacing:-.04em;text-decoration:none;}
+.logo span{color:var(--teal);}
+.nav-links{display:flex;gap:2rem;list-style:none;}
+.nav-links a{color:var(--text);text-decoration:none;font-size:.82rem;letter-spacing:.07em;text-transform:uppercase;font-weight:500;position:relative;transition:color .3s;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;background:var(--accent);transition:width .3s;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-cta{background:var(--accent);color:var(--dark);padding:.5rem 1.3rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;border-radius:2px;text-decoration:none;border:none;cursor:none;transition:background .3s,transform .2s;}
+.nav-cta:hover{background:var(--green);transform:translateY(-2px);}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;padding:4px;cursor:none;}
+.hamburger span{width:22px;height:2px;background:var(--accent);display:block;transition:.3s;}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+.mobile-menu{display:none;position:fixed;top:62px;left:0;right:0;background:rgba(5,14,10,.98);backdrop-filter:blur(20px);z-index:499;border-bottom:1px solid var(--border);transform:translateY(-8px);opacity:0;transition:.3s;pointer-events:none;}
+.mobile-menu.open{display:block;transform:translateY(0);opacity:1;pointer-events:all;}
+.mobile-nav{list-style:none;padding:1.5rem 2rem;}
+.mobile-nav li{border-bottom:1px solid rgba(0,230,118,.06);}
+.mobile-nav a{display:block;padding:.85rem 0;color:var(--text);text-decoration:none;font-family:'Syne',sans-serif;font-weight:600;font-size:.95rem;transition:color .2s;}
+.mobile-nav a:hover{color:var(--accent);}
+
+/* PAGE */
+.page{position:relative;z-index:2;padding-top:68px;}
+.bc-bar{padding:1rem 3rem;background:rgba(10,26,18,.6);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.bc{display:flex;gap:.45rem;align-items:center;font-size:.75rem;color:rgba(200,230,201,.38);}
+.bc a{color:rgba(200,230,201,.38);text-decoration:none;transition:color .2s;}
+.bc a:hover{color:var(--green);}
+.bc .sep{color:rgba(200,230,201,.16);}
+.bc .cur{color:rgba(200,230,201,.65);}
+
+/* MAIN GRID */
+.product-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+
+/* GALLERY */
+.gallery-col{position:sticky;top:68px;height:calc(100vh - 68px);display:flex;flex-direction:column;background:var(--dark2);border-right:1px solid var(--border);overflow:hidden;}
+.viewer{flex:1;position:relative;overflow:hidden;cursor:zoom-in;}
+.viewer.zoomed{cursor:zoom-out;}
+.vimg{width:100%;height:100%;object-fit:cover;transition:opacity .3s,transform .75s cubic-bezier(.25,.46,.45,.94);}
+.vimg.switching{opacity:0;}
+.viewer.zoomed .vimg{transform:scale(1.75);}
+.vcounter{position:absolute;top:1.2rem;left:1.2rem;z-index:10;background:rgba(5,14,10,.75);backdrop-filter:blur(10px);border:1px solid var(--border);padding:.28rem .75rem;border-radius:100px;font-size:.7rem;color:rgba(200,230,201,.6);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.08em;}
+.vbadges{position:absolute;top:1.2rem;right:1.2rem;z-index:10;display:flex;flex-direction:column;gap:.45rem;align-items:flex-end;}
+.vb{padding:.28rem .8rem;border-radius:100px;font-size:.68rem;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+.vb-lime{background:rgba(118,255,3,.14);border:1px solid rgba(118,255,3,.32);color:var(--accent);}
+.vb-grn{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.28);color:var(--green);}
+.zoom-hint{position:absolute;bottom:1.2rem;right:1.2rem;z-index:10;background:rgba(5,14,10,.65);backdrop-filter:blur(8px);border:1px solid var(--border);padding:.3rem .85rem;border-radius:100px;font-size:.7rem;color:rgba(200,230,201,.4);display:flex;align-items:center;gap:.35rem;transition:opacity .4s;}
+.viewer:hover .zoom-hint{opacity:0;}
+.varrow{position:absolute;top:50%;transform:translateY(-50%);z-index:10;width:42px;height:42px;background:rgba(5,14,10,.65);backdrop-filter:blur(8px);border:1px solid rgba(0,230,118,.2);border-radius:3px;color:var(--green);font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .3s,border-color .3s,transform .2s;}
+.varrow:hover{background:rgba(0,230,118,.14);border-color:var(--green);transform:translateY(-50%) scale(1.08);}
+#vPrev{left:.9rem;}#vNext{right:.9rem;}
+.thumbs{display:flex;gap:.55rem;padding:.9rem 1.1rem;background:rgba(5,14,10,.8);border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.thumbs::-webkit-scrollbar{display:none;}
+.thumb{width:70px;height:52px;flex-shrink:0;border-radius:3px;overflow:hidden;border:2px solid transparent;opacity:.5;cursor:none;transition:opacity .3s,border-color .3s,transform .25s;position:relative;}
+.thumb img{width:100%;height:100%;object-fit:cover;}
+.thumb:hover{opacity:.85;transform:translateY(-2px);}
+.thumb.on{opacity:1;border-color:var(--accent);}
+.thumb.on::after{content:'';position:absolute;inset:0;background:rgba(118,255,3,.06);}
+
+/* EMOJI FALLBACK viewer when no real images */
+.emoji-view{flex:1;display:flex;align-items:center;justify-content:center;font-size:9rem;background:linear-gradient(135deg,rgba(0,230,118,.05),rgba(0,188,212,.05));position:relative;}
+
+/* DETAIL */
+.detail-col{overflow-y:auto;padding:3rem 3.5rem 6rem;background:var(--dark);}
+.prod-cat{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:.7rem;display:flex;align-items:center;gap:.6rem;}
+.prod-cat::before{content:'';width:22px;height:1px;background:var(--green);display:block;}
+.prod-title{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2rem,3.2vw,2.9rem);letter-spacing:-.04em;color:#fff;line-height:1.04;margin-bottom:1rem;}
+.prod-title .hi{color:var(--accent);}
+.rrow{display:flex;align-items:center;gap:.85rem;margin-bottom:1.6rem;flex-wrap:wrap;}
+.stars{color:var(--warn);font-size:.95rem;}
+.rnum{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;color:#fff;}
+.rcnt{font-size:.78rem;color:rgba(200,230,201,.38);}
+.rdiv{width:1px;height:13px;background:var(--border);}
+.vcert{font-size:.7rem;color:var(--teal);letter-spacing:.07em;text-transform:uppercase;}
+.price-block{background:linear-gradient(135deg,var(--mid2),rgba(17,35,24,.8));border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:4px;padding:1.35rem 1.6rem;margin-bottom:1.8rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;}
+.price-big{font-family:'Syne',sans-serif;font-weight:800;font-size:2.4rem;color:var(--accent);letter-spacing:-.04em;line-height:1;}
+.price-unit{font-size:.78rem;color:rgba(200,230,201,.4);font-weight:400;}
+.price-moq{font-size:.78rem;color:rgba(200,230,201,.5);margin-top:.25rem;}
+.price-moq strong{color:var(--green);}
+.price-save{background:rgba(118,255,3,.1);border:1px solid rgba(118,255,3,.22);color:var(--accent);font-size:.7rem;font-family:'Syne',sans-serif;font-weight:700;padding:.22rem .7rem;border-radius:100px;letter-spacing:.06em;white-space:nowrap;}
+.sdesc{font-size:.93rem;line-height:1.78;color:rgba(200,230,201,.6);margin-bottom:2rem;padding-left:1rem;border-left:2px solid rgba(0,230,118,.2);font-style:italic;}
+.opt-label{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(200,230,201,.42);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:.65rem;}
+.opt-label span{color:var(--text);text-transform:none;letter-spacing:0;font-size:.82rem;}
+.swatches{display:flex;gap:.55rem;margin-bottom:1.7rem;flex-wrap:wrap;}
+.sw{width:30px;height:30px;border-radius:50%;cursor:none;border:2px solid transparent;transition:transform .22s,border-color .22s;position:relative;}
+.sw:hover{transform:scale(1.18);}
+.sw.on{border-color:rgba(255,255,255,.55);}
+.sw.on::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;font-weight:800;}
+.sizebts{display:flex;gap:.55rem;margin-bottom:1.8rem;flex-wrap:wrap;}
+.sizebt{background:var(--mid);border:1px solid var(--border);color:rgba(200,230,201,.6);padding:.45rem 1.05rem;border-radius:3px;font-family:'Syne',sans-serif;font-weight:600;font-size:.8rem;cursor:none;transition:all .25s;}
+.sizebt:hover{border-color:var(--green);color:var(--green);}
+.sizebt.on{background:rgba(118,255,3,.1);border-color:var(--accent);color:var(--accent);}
+.action-row{display:flex;gap:.9rem;align-items:center;margin-bottom:1.8rem;flex-wrap:wrap;}
+.qty{display:flex;align-items:center;background:var(--mid);border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.qbtn{width:40px;height:46px;background:none;border:none;color:var(--green);font-size:1.1rem;cursor:none;transition:background .2s;display:flex;align-items:center;justify-content:center;}
+.qbtn:hover{background:rgba(0,230,118,.1);}
+.qval{width:56px;text-align:center;background:none;border:none;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.btn-quote{flex:1;background:var(--accent);color:var(--dark);border:none;padding:.88rem 1.6rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.86rem;letter-spacing:.04em;cursor:none;border-radius:3px;box-shadow:0 0 28px rgba(118,255,3,.2);transition:transform .2s,box-shadow .3s;position:relative;overflow:hidden;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.btn-quote::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transition:left .5s;}
+.btn-quote:hover::before{left:100%;}
+.btn-quote:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(118,255,3,.42);}
+.btn-samp{background:none;border:1px solid rgba(0,230,118,.3);color:var(--green);padding:.88rem 1.4rem;font-family:'Syne',sans-serif;font-weight:600;font-size:.84rem;cursor:none;border-radius:3px;white-space:nowrap;transition:background .3s,border-color .3s;}
+.btn-samp:hover{background:rgba(0,230,118,.08);border-color:var(--green);}
+.trust{display:flex;gap:1.2rem;flex-wrap:wrap;padding:1.1rem 1.4rem;background:var(--mid2);border:1px solid var(--border);border-radius:4px;margin-bottom:2.4rem;}
+.ti{display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:rgba(200,230,201,.5);}
+
+/* TABS */
+.tabs-nav{display:flex;border-bottom:1px solid var(--border);margin-bottom:2rem;}
+.tbt{background:none;border:none;border-bottom:2px solid transparent;padding:.75rem 1.3rem;color:rgba(200,230,201,.42);font-family:'Syne',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;cursor:none;transition:color .3s,border-color .3s;margin-bottom:-1px;}
+.tbt:hover{color:rgba(200,230,201,.75);}
+.tbt.on{color:var(--accent);border-bottom-color:var(--accent);}
+.tpanel{display:none;animation:fadeUp .3s ease;}
+.tpanel.on{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.stab{width:100%;border-collapse:collapse;}
+.stab tr{border-bottom:1px solid rgba(0,230,118,.05);}
+.stab tr:last-child{border-bottom:none;}
+.stab td{padding:.85rem .4rem;font-size:.86rem;vertical-align:top;}
+.stab td:first-child{color:rgba(200,230,201,.42);width:44%;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;font-family:'Syne',sans-serif;font-weight:600;}
+.stab td:last-child{color:rgba(200,230,201,.82);font-weight:500;}
+.sh{color:var(--accent) !important;font-family:'Syne',sans-serif;font-weight:700 !important;}
+.flist{display:flex;flex-direction:column;gap:.55rem;}
+.fi{display:flex;align-items:flex-start;gap:.85rem;padding:.9rem 1rem;background:var(--mid2);border:1px solid var(--border);border-radius:3px;transition:border-color .3s,background .3s;}
+.fi:hover{border-color:rgba(0,230,118,.22);background:#0c1c13;}
+.fck{width:22px;height:22px;background:rgba(118,255,3,.1);border:1px solid rgba(118,255,3,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--accent);flex-shrink:0;margin-top:.15rem;}
+.ft strong{display:block;font-family:'Syne',sans-serif;font-weight:700;font-size:.87rem;color:#fff;margin-bottom:.15rem;}
+.ft span{font-size:.81rem;color:rgba(200,230,201,.5);line-height:1.58;}
+.rev-summary{display:grid;grid-template-columns:auto 1fr;gap:2rem;padding:1.4rem;background:var(--mid2);border:1px solid var(--border);border-radius:4px;margin-bottom:1.8rem;align-items:center;}
+.rev-big{font-family:'Syne',sans-serif;font-weight:800;font-size:3.8rem;color:var(--accent);line-height:1;letter-spacing:-.06em;text-align:center;}
+.rev-big-stars{color:var(--warn);font-size:1rem;text-align:center;}
+.rev-big-cnt{font-size:.72rem;color:rgba(200,230,201,.38);text-align:center;margin-top:.15rem;}
+.rbars{display:flex;flex-direction:column;gap:.45rem;}
+.rbar-row{display:flex;align-items:center;gap:.7rem;font-size:.76rem;}
+.rbar-lbl{color:rgba(200,230,201,.45);width:28px;text-align:right;font-family:'Syne',sans-serif;font-weight:600;}
+.rbar-track{flex:1;height:5px;background:rgba(0,230,118,.07);border-radius:3px;overflow:hidden;}
+.rbar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;}
+.rbar-pct{color:rgba(200,230,201,.3);width:28px;}
+.rcards{display:flex;flex-direction:column;gap:.9rem;}
+.rcard{background:var(--mid2);border:1px solid var(--border);padding:1.3rem;border-radius:4px;transition:border-color .3s;}
+.rcard:hover{border-color:rgba(0,230,118,.18);}
+.rcard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.65rem;flex-wrap:wrap;gap:.4rem;}
+.rav-row{display:flex;align-items:center;gap:.65rem;}
+.rav{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;color:var(--dark);}
+.rname{font-family:'Syne',sans-serif;font-weight:700;font-size:.86rem;color:#fff;}
+.rdate{font-size:.7rem;color:rgba(200,230,201,.32);}
+.rstars{color:var(--warn);font-size:.78rem;}
+.rvp{font-size:.66rem;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;}
+.rtitle{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;color:#fff;margin-bottom:.35rem;}
+.rbody{font-size:.82rem;color:rgba(200,230,201,.55);line-height:1.65;}
+.rhelpful{font-size:.72rem;color:rgba(200,230,201,.28);margin-top:.7rem;}
+.rhelpful a{color:var(--green);text-decoration:none;}
+.ship-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+.sc{background:var(--mid2);border:1px solid var(--border);padding:1.3rem;border-radius:4px;transition:border-color .3s,background .3s;}
+.sc:hover{border-color:rgba(0,230,118,.22);background:#0c1c13;}
+.sc-icon{font-size:1.7rem;margin-bottom:.6rem;display:block;}
+.sc-title{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:.88rem;margin-bottom:.28rem;}
+.sc-desc{font-size:.8rem;color:rgba(200,230,201,.48);line-height:1.6;}
+
+/* RELATED */
+.related{position:relative;z-index:2;padding:5rem 3rem;background:var(--dark2);border-top:1px solid var(--border);}
+.sec-label{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:.75rem;display:flex;align-items:center;gap:.7rem;}
+.sec-label::before{content:'';width:26px;height:1px;background:var(--green);display:block;}
+.rel-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem;}
+.rel-title{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.6rem,2.8vw,2.3rem);letter-spacing:-.04em;color:#fff;}
+.rel-title .hi{color:var(--accent);}
+.rel-more{color:var(--green);font-size:.83rem;font-family:'Syne',sans-serif;font-weight:600;text-decoration:none;white-space:nowrap;transition:color .2s;}
+.rel-more:hover{color:var(--accent);}
+.rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1.1rem;}
+.rel-card{background:var(--mid);border:1px solid var(--border);border-radius:4px;overflow:hidden;cursor:none;text-decoration:none;display:block;transition:transform .35s,box-shadow .3s,border-color .3s;}
+.rel-card:hover{transform:translateY(-8px);box-shadow:0 20px 50px rgba(0,0,0,.45),0 0 28px rgba(118,255,3,.07);border-color:rgba(118,255,3,.22);}
+.rel-img{height:150px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;background:linear-gradient(135deg,rgba(0,230,118,.06),rgba(0,188,212,.05));}
+.rel-body{padding:1.05rem;}
+.rel-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:#fff;margin-bottom:.2rem;}
+.rel-mat{font-size:.7rem;color:var(--teal);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.55rem;}
+.rel-price{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;color:var(--accent);}
+
+/* FOOTER */
+footer{background:#020905;padding:3.5rem 3rem 2rem;border-top:1px solid var(--border);position:relative;z-index:2;}
+.ft-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2.5rem;}
+.ft-brand p{font-size:.82rem;color:rgba(200,230,201,.4);line-height:1.7;margin:.7rem 0 1.1rem;}
+.ft-socials{display:flex;gap:.65rem;}
+.ft-socials a{width:34px;height:34px;border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:background .3s;}
+.ft-socials a:hover{background:rgba(0,230,118,.1);}
+.ft-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--accent);}
+.ft-logo span{color:var(--teal);}
+.ft-col h4{font-family:'Syne',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.11em;text-transform:uppercase;color:rgba(200,230,201,.38);margin-bottom:1.1rem;}
+.ft-col a{display:block;color:rgba(200,230,201,.4);font-size:.81rem;text-decoration:none;margin-bottom:.5rem;transition:color .2s;}
+.ft-col a:hover{color:var(--green);}
+.ft-bot{border-top:1px solid rgba(0,230,118,.05);padding-top:1.4rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.7rem;}
+.ft-bot span{font-size:.73rem;color:rgba(200,230,201,.2);}
+.ft-blinks{display:flex;gap:1.3rem;}
+.ft-blinks a{font-size:.73rem;color:rgba(200,230,201,.22);text-decoration:none;transition:color .2s;}
+.ft-blinks a:hover{color:var(--green);}
+.mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:600;background:rgba(10,26,18,.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:.9rem 1.5rem;gap:.8rem;align-items:center;}
+.mob-price{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--accent);}
+.mob-price span{font-size:.72rem;color:rgba(200,230,201,.4);font-weight:400;}
+.mob-cta{flex:1;background:var(--accent);color:var(--dark);border:none;padding:.75rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;border-radius:3px;cursor:none;text-align:center;text-decoration:none;display:block;}
+
+/* NOT FOUND */
+.not-found{text-align:center;padding:10rem 2rem;position:relative;z-index:2;}
+.not-found h2{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:#fff;margin-bottom:1rem;}
+.not-found p{color:rgba(200,230,201,.5);margin-bottom:2rem;}
+.not-found a{background:var(--accent);color:var(--dark);padding:.8rem 2rem;border-radius:3px;font-family:'Syne',sans-serif;font-weight:700;text-decoration:none;}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s,transform .65s;}
+.reveal.vis{opacity:1;transform:translateY(0);}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+
+@media(max-width:960px){.product-wrap{grid-template-columns:1fr;}.gallery-col{position:relative;top:0;height:auto;}.viewer{min-height:380px;}.detail-col{padding:2.5rem 2rem 4rem;}.ship-grid{grid-template-columns:1fr;}.ft-top{grid-template-columns:1fr 1fr;}.related{padding:4rem 1.5rem;}}
+@media(max-width:720px){nav{padding:1rem 1.5rem;}.nav-links,.nav-cta{display:none;}.hamburger{display:flex;}.bc-bar{padding:.9rem 1.5rem;}footer{padding:3rem 1.5rem 1.5rem;}.ft-top{grid-template-columns:1fr;}.ft-bot{flex-direction:column;text-align:center;}.mob-bar{display:flex;}.detail-col{padding-bottom:100px;}.rev-summary{grid-template-columns:1fr;}}
+@media(max-width:500px){.action-row{flex-direction:column;}.btn-quote,.btn-samp{width:100%;text-align:center;}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+
+<nav id="nav">
+  <a href="index.html" class="logo">Hit<span>Shi</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="products.html" class="active">Products</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="contact.html" class="nav-cta">Get Quote</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mm">
+  <ul class="mobile-nav">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About Us</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</div>
+
+<div class="page" id="page-root">
+  <!-- Dynamically rendered by JS -->
+</div>
+
+<!-- MOBILE STICKY -->
+<div class="mob-bar" id="mob-bar" style="display:none">
+  <div class="mob-price" id="mob-price">—</div>
+  <a href="contact.html" class="mob-cta">Request Quote</a>
+</div>
+
+<footer>
+  <div class="ft-top">
+    <div class="ft-brand">
+      <div class="ft-logo">Hit<span>Shi</span></div>
+      <p>Transforming post-consumer plastic waste into premium, durable products — closing the loop on pollution.</p>
+      <div class="ft-socials"><a href="#">🌐</a><a href="#">📘</a><a href="#">📸</a><a href="#">🐦</a></div>
+    </div>
+    <div class="ft-col"><h4>Company</h4><a href="about.html">About Us</a><a href="services.html">Services</a><a href="products.html">Products</a><a href="blog.html">Blog</a></div>
+    <div class="ft-col"><h4>Products</h4>
+      <a href="product-detail.html?id=ecosit-chair">Garden Furniture</a>
+      <a href="product-detail.html?id=recydeck-lumber">Plastic Lumber</a>
+      <a href="product-detail.html?id=purestore-containers">Storage</a>
+      <a href="product-detail.html?id=trailmark-tiles">Paving Tiles</a>
+    </div>
+    <div class="ft-col"><h4>Contact</h4><a href="mailto:hello@hitshi.com">hello@hitshi.com</a><a href="tel:+441234567890">+44 1234 567 890</a><a href="contact.html">Get a Quote</a></div>
+  </div>
+  <div class="ft-bot"><span>© 2026 HitShi Industries. All rights reserved.</span><div class="ft-blinks"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Sitemap</a></div></div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════
+   PRODUCT DATABASE
+   Add / edit products here — the page
+   renders entirely from this data.
+══════════════════════════════════════════ */
+const PRODUCTS = {
+
+  'ecosit-chair': {
+    name: 'EcoSit Garden Chair',
+    nameHighlight: 'Garden',            // word to colour in accent
+    category: 'Garden Furniture',
+    material: '100% rPET',
+    price: '$89',
+    priceUnit: '/ unit',
+    moq: '500 units',
+    saving: '💚 Save 23% vs Virgin Plastic',
+    rating: '4.8', reviews: '247',
+    certs: ['✓ GRS Certified', '✓ B Corp'],
+    badges: ['⭐ Bestseller', '♻ 100% rPET'],
+    shortDesc: 'Built entirely from 48 post-consumer PET bottles per chair. UV-stabilised, salt-spray tested, and structurally warranted for 25 years — even in coastal and tropical climates. Zero maintenance, ever.',
+    colors: [
+      {name:'Forest Green', bg:'#2d5a27'},
+      {name:'Slate Grey',   bg:'#4a5568'},
+      {name:'Driftwood',    bg:'#8b7355'},
+      {name:'Ocean Blue',   bg:'#2c5282'},
+      {name:'Chalk White',  bg:'#e8e8e8'},
+      {name:'Obsidian',     bg:'#1a1a2e'},
+      {name:'Terracotta',   bg:'#c4522a'},
+      {name:'Custom Pantone', bg:'conic-gradient(#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#ff6b6b)'}
+    ],
+    configs: ['Standard','With Armrests','Rocking','Lounge Low','Stacking'],
+    trust: ['🌿 GRS Certified','🔬 FDA Tested','♻ Carbon Neutral','🚢 38 Countries','🏅 B Corp 127','🛡️ 25yr Warranty'],
+    images: [
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=85',
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1000&q=85',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=85',
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','100% rPET (Post-Consumer)',true],
+      ['Bottles Per Unit','48 × 500 ml PET bottles'],
+      ['Dimensions (W×D×H)','56 × 62 × 88 cm'],
+      ['Seat Height','44 cm'],
+      ['Weight','4.2 kg'],
+      ['Load Capacity','180 kg (SWL tested)'],
+      ['UV Stability','Grade A — 25+ Year Guarantee',true],
+      ['Salt Spray Rating','1,000+ hours (ISO 9227)'],
+      ['Slip Resistance','R10 (EN 13893)'],
+      ['Colour Options','12 standard + custom Pantone'],
+      ['Assembly','Tool-free flat-pack (under 3 min)'],
+      ['Certifications','GRS, CE, ISO 14001, FDA'],
+      ['Warranty','25 Years Structural',true],
+      ['End-of-Life','100% Recyclable — Take-Back Scheme',true],
+      ['MOQ','500 units'],
+      ['Lead Time','6–8 weeks (standard)'],
+      ['Dispatch Hubs','Rotterdam · Singapore · São Paulo']
+    ],
+    features: [
+      ['48 Recycled PET Bottles Per Chair','Every unit diverts 48 × 500ml bottles from landfill or ocean. Ships with a verified GRS impact certificate detailing exact waste origin and chain-of-custody.'],
+      ['25-Year UV-Stable Colour','Proprietary UV stabilisation prevents colour fade and brittleness for a guaranteed 25+ years — independently tested to ISO 4892 at 1,000 Wh/m².'],
+      ['Zero Maintenance — Ever','No painting, staining, oiling, or rust treatment. Non-porous material means wipe clean with water and leave out year-round in any climate.'],
+      ['Marine & Coastal Grade','Passes 1,000+ hour salt-spray test (ISO 9227). Approved for harbourside, beachfront, pool deck, and offshore platform installations.'],
+      ['Custom Pantone Colour Matching','Specify any Pantone solid colour for 2,000+ unit orders. Masterbatch concentrates deliver consistent, brand-accurate results across every batch.'],
+      ['Flat-Pack, Tool-Free Assembly','Push-lock joints assemble in under 3 minutes with no tools. Flat-pack cuts shipping volume by 65% — up to 200 chairs per 20ft container.'],
+      ['Full Circular Take-Back Programme','At end of 25-year life, return any EcoSit chair via our take-back scheme. We recycle it into fresh rPET pellets for the next generation of products.'],
+      ['Complete Sustainability Documentation','Every order includes a GRS CoC certificate, ISO 14067 carbon footprint LCA report, and digital traceability QR code for end-buyers.']
+    ],
+    reviews: [
+      {init:'SM',name:'Sofia Marchetti',date:'Feb 2026 · Barcelona',stars:'★★★★★',title:'3 years installed — absolutely zero degradation',body:'We placed 480 EcoSit chairs across 12 Barcelona city parks in 2023. Three years on, not one has cracked, faded, or required any attention. The sustainability certificates were critical for our green procurement audit.', yes:34, no:1},
+      {init:'JK',name:'James Kwan',date:'Jan 2026 · Singapore',stars:'★★★★★',title:'Custom Pantone match was flawless',body:'Ordered 2,000 units in custom Pantone cobalt blue for a waterfront hotel. The colour match was exact — our designer approved the very first sample. Two typhoon seasons later and the chairs look brand new.', yes:28, no:0},
+      {init:'AR',name:'Amira Rahman',date:'Dec 2025 · Dubai',stars:'★★★★☆',title:'Excellent product — minor packaging issue resolved quickly',body:'The chairs are genuinely outstanding — light, sturdy, and the rocking config is surprisingly comfortable. A few flat-pack boxes had minor transit damage, but HitShi replaced all affected units within 10 days.', yes:19, no:2}
+    ],
+    related: [
+      {id:'ecosit-table',  name:'EcoSit Dining Table',  mat:'rHDPE Blend',    price:'$245 / unit', icon:'🪵'},
+      {id:'greenbench',    name:'GreenBench Park Bench',mat:'100% rPET',       price:'$125 / unit', icon:'🌿'},
+      {id:'recydeck-lumber',name:'RecyDeck Lumber',     mat:'rHDPE Blend',     price:'$18 / linear m', icon:'🏗️'},
+      {id:'trailmark-tiles',name:'TrailMark Tiles',     mat:'Mixed rPlastic',  price:'$8.50 / tile', icon:'🛤️'}
+    ]
+  },
+
+  'ecosit-table': {
+    name: 'EcoSit Dining Table',
+    nameHighlight: 'Dining',
+    category: 'Garden Furniture',
+    material: 'rHDPE Blend',
+    price: '$245',
+    priceUnit: '/ unit',
+    moq: '200 units',
+    saving: '💚 Replaces Tropical Hardwood',
+    rating: '4.7', reviews: '119',
+    certs: ['✓ GRS Certified', '✓ CE Marked'],
+    badges: ['🌿 Eco Choice', '♻ rHDPE'],
+    shortDesc: 'Seats 6 comfortably. Manufactured from 200+ recycled HDPE bottles. Scratch and stain-resistant surface, UV-stable for 20+ years. Designed to outlast any timber alternative without a single coat of oil or paint.',
+    colors: [
+      {name:'Charcoal',   bg:'#333'},
+      {name:'Teak Brown', bg:'#7a5c3e'},
+      {name:'Forest Green',bg:'#2d5a27'},
+      {name:'Chalk White',bg:'#e8e8e8'},
+      {name:'Slate Grey', bg:'#4a5568'}
+    ],
+    configs: ['6-Seat Rectangle','8-Seat Rectangle','Round 4-Seat','Folding'],
+    trust: ['🌿 GRS Certified','♻ Carbon Neutral','🚢 38 Countries','🛡️ 20yr Warranty'],
+    images: [
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1000&q=85',
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','rHDPE Blend (Post-Consumer)',true],
+      ['Bottles Per Unit','200+ HDPE bottles'],
+      ['Dimensions (W×D×H)','180 × 90 × 75 cm'],
+      ['Weight','18 kg'],
+      ['Surface','Scratch & stain resistant',true],
+      ['UV Stability','Grade A — 20+ Year Guarantee',true],
+      ['Seats','6 adults comfortably'],
+      ['Certifications','GRS, CE, ISO 14001'],
+      ['Warranty','20 Years Structural',true],
+      ['MOQ','200 units'],
+      ['Lead Time','6–8 weeks']
+    ],
+    features: [
+      ['200+ Recycled HDPE Bottles','Each table diverts over 200 post-consumer HDPE bottles from landfill, verified by GRS chain-of-custody documentation.'],
+      ['Scratch & Stain Resistant Surface','The co-extruded top layer resists scratches from cutlery, staining from food & drinks, and surface degradation from UV and rain.'],
+      ['20-Year Structural Warranty','Independently tested to EN 581 outdoor furniture standard. Full structural warranty against cracking, splitting, and delamination.'],
+      ['Zero Maintenance','Never needs oiling, painting, or treating. Simply wipe down with water. No seasonal storage required.'],
+      ['Custom Sizes Available','Standard 6-seat and 8-seat rectangles plus round options. Custom dimensions available for 500+ unit orders.'],
+      ['Flat-Pack Delivery','Ships flat-pack to reduce freight costs and carbon footprint. Simple bolt-assembly in under 15 minutes.']
+    ],
+    reviews: [
+      {init:'LB',name:'Luca Bianchi',date:'Mar 2026 · Milan',stars:'★★★★★',title:'Perfect for our rooftop restaurant',body:'We replaced all 24 timber tables with EcoSit Dining Tables last season. No warping, no oiling, no guest complaints about splinters. An absolute no-brainer for commercial outdoor dining.', yes:22, no:0},
+      {init:'NP',name:'Nina Patel',date:'Jan 2026 · Dubai',stars:'★★★★★',title:'Survived a full Dubai summer without flinching',body:'Ordered 60 units for a hotel pool terrace. The colour held perfectly through six months of direct 45°C sun. Competitors\' products had faded and warped within a year — these look brand new.', yes:18, no:1}
+    ],
+    related: [
+      {id:'ecosit-chair',   name:'EcoSit Garden Chair',  mat:'100% rPET',   price:'$89 / unit',  icon:'🪑'},
+      {id:'greenbench',     name:'GreenBench Park Bench',mat:'100% rPET',   price:'$125 / unit', icon:'🌿'},
+      {id:'recydeck-lumber',name:'RecyDeck Lumber',      mat:'rHDPE Blend', price:'$18 / linear m',icon:'🏗️'},
+      {id:'ecofence-panels',name:'EcoFence Panels',      mat:'rHDPE',       price:'$45 / panel', icon:'🏡'}
+    ]
+  },
+
+  'recydeck-lumber': {
+    name: 'RecyDeck Lumber',
+    nameHighlight: 'Lumber',
+    category: 'Construction',
+    material: 'rHDPE Blend',
+    price: '$18',
+    priceUnit: '/ linear m',
+    moq: '1,000 linear m',
+    saving: '🌳 Replaces Tropical Hardwood 1:1',
+    rating: '4.9', reviews: '312',
+    certs: ['✓ BBA Certified', '✓ CE Marked'],
+    badges: ['🏆 Pro Grade', '♻ rHDPE'],
+    shortDesc: 'Structural-grade recycled plastic lumber for decking, fencing, jetties, and marine boardwalks. Rot-proof, splinter-free, and load-bearing. Replaces tropical hardwood at equivalent section sizes — without the maintenance.',
+    colors: [
+      {name:'Teak',      bg:'#8b6914'},
+      {name:'Charcoal',  bg:'#2d2d2d'},
+      {name:'Cedar',     bg:'#a0522d'},
+      {name:'Grey Ash',  bg:'#8a8a8a'},
+      {name:'Ebony',     bg:'#1a1a1a'}
+    ],
+    configs: ['90×19mm Decking','140×38mm Joist','150×50mm Post','200×50mm Bearer','Custom Section'],
+    trust: ['🏗️ BBA Certified','🚢 Marine Grade','🛡️ 30yr Warranty','🌿 GRS Certified'],
+    images: [
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1000&q=85',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=85',
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','rHDPE Blend',true],
+      ['Grade','Structural — BBA Certified',true],
+      ['Standard Lengths','3.6m and 5.4m'],
+      ['Load Rating','850 kg/m²',true],
+      ['UV Stability','Grade A'],
+      ['Slip Resistance','Anti-slip grooved profile R11'],
+      ['Marine Rating','Salt spray 2,000+ hours'],
+      ['Rot/Insect Proof','100% — No treatment needed',true],
+      ['Certifications','GRS, CE, BBA, ISO 14001'],
+      ['Warranty','30 Years Structural',true],
+      ['MOQ','1,000 linear metres'],
+      ['Lead Time','4–6 weeks']
+    ],
+    features: [
+      ['BBA Certified Structural Grade','British Board of Agrément certification confirms structural performance equivalent to C24 timber. Suitable for load-bearing applications.'],
+      ['Marine & Harbour Grade','Certified for marine environments. Used on harbours, yacht club pontoons, coastal walkways, and offshore installations.'],
+      ['Rot, Insect & Fungus Proof','Completely immune to rot, termites, marine borers, and fungal attack. Never needs treatment, preservative, or replacement due to decay.'],
+      ['30-Year Structural Warranty','The longest warranty in the recycled plastic lumber sector. Full replacement guarantee against structural failure.'],
+      ['Drop-In Timber Replacement','Identical section sizes to standard sawn timber. Existing fixings, jigs, and tools work without modification.'],
+      ['Lower Lifetime Cost','25–40% lower whole-life cost vs hardwood once maintenance savings are factored in over a 30-year period.']
+    ],
+    reviews: [
+      {init:'TH',name:'Tom Hargreaves',date:'Feb 2026 · Cornwall',stars:'★★★★★',title:'Best decking product on the market bar none',body:'We\'ve installed RecyDeck on 34 projects over three years. Zero call-backs for rot, splitting, or warping. Clients love that there\'s nothing to maintain. Now our default specification for all outdoor decking.', yes:45, no:0},
+      {init:'MR',name:'Marjan Rousseau',date:'Jan 2026 · Rotterdam',stars:'★★★★★',title:'Harbour-grade performance — exceptional',body:'Specified for a new 180-berth marina walkway. 18 months on, the surface looks exactly as installed. No swelling, no checking, no corrosion around fixings. Will specify on every marine project going forward.', yes:38, no:2}
+    ],
+    related: [
+      {id:'trailmark-tiles',name:'TrailMark Tiles',     mat:'Mixed rPlastic',  price:'$8.50 / tile',icon:'🛤️'},
+      {id:'ecofence-panels',name:'EcoFence Panels',     mat:'rHDPE',           price:'$45 / panel', icon:'🏡'},
+      {id:'safeguard-barriers',name:'SafeGuard Barriers',mat:'rHDPE',          price:'$62 / unit',  icon:'🚧'},
+      {id:'ecosit-table',   name:'EcoSit Dining Table', mat:'rHDPE Blend',     price:'$245 / unit', icon:'🪵'}
+    ]
+  },
+
+  'trailmark-tiles': {
+    name: 'TrailMark Tiles',
+    nameHighlight: 'Tiles',
+    category: 'Outdoor',
+    material: 'Mixed rPlastic',
+    price: '$8.50',
+    priceUnit: '/ tile',
+    moq: '2,000 tiles',
+    saving: '🛡️ 40% Impact Absorption',
+    rating: '4.6', reviews: '88',
+    certs: ['✓ EN 1176 Playground Safety','✓ CE Marked'],
+    badges: ['🛡️ Safety Rated', '♻ Mixed rPlastic'],
+    shortDesc: 'Interlocking paving tiles for pathways, patios, playgrounds, and public spaces. The shock-absorbing base layer reduces fall impact by 40% vs concrete. Anti-slip surface texture performs in wet conditions.',
+    colors: [
+      {name:'Charcoal',     bg:'#333'},
+      {name:'Terracotta',   bg:'#c4522a'},
+      {name:'Forest Green', bg:'#2d5a27'},
+      {name:'Sand',         bg:'#c8a97e'},
+      {name:'Slate Blue',   bg:'#4a6fa5'}
+    ],
+    configs: ['500×500mm Standard','500×500mm Anti-Slip+','250×500mm Path','Kerb Edge','Corner Piece'],
+    trust: ['🛡️ EN 1176 Safety','🌿 GRS Certified','♻ Carbon Neutral','🛡️ 15yr Warranty'],
+    images: [
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85',
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1000&q=85',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','Mixed rPlastic (Post-Consumer)',true],
+      ['Tile Size','500 × 500 × 40 mm'],
+      ['Load Rating','12 tonnes/m²',true],
+      ['Impact Absorption','40% vs concrete (EN 1177)',true],
+      ['Slip Rating','R12 wet, R13 enhanced profile'],
+      ['Temperature Range','-40°C to +80°C'],
+      ['Certifications','CE, EN 1176, GRS, ISO 14001'],
+      ['Warranty','15 Years',true],
+      ['MOQ','2,000 tiles (500 m²)'],
+      ['Lead Time','4–6 weeks']
+    ],
+    features: [
+      ['40% Impact Absorption','Patented two-layer construction — rigid top surface over flexible shock-absorbing base — reduces fall impact by 40% vs solid concrete (EN 1177 tested).'],
+      ['Playground & Public Space Safe','Meets EN 1176 playground equipment safety standard. Approved for ROSPA-compliant playgrounds and public parks.'],
+      ['R12 Anti-Slip in Wet Conditions','Surface texture maintains R12 slip resistance when wet, icy, or covered in moss — ideal for pool surrounds, waterfront paths, and school grounds.'],
+      ['Interlocking — No Adhesive','Tongue-and-groove interlocking system requires no adhesive or specialist tools. Fully reversible: tiles can be lifted and relaid without damage.'],
+      ['Permeable Drainage Option','Perforated variant allows up to 200L/m²/hr drainage — eliminates puddles and qualifies as a permeable surface under planning regulations.'],
+      ['Zero Maintenance','Pressure wash annually. No resealing, repainting, or re-levelling. Does not crack, chip, or heave under frost.']
+    ],
+    reviews: [
+      {init:'CP',name:'Claire Pendleton',date:'Mar 2026 · Manchester',stars:'★★★★★',title:'Transformed our school playground',body:'Replaced cracked tarmac across our entire KS1 playground. The impact absorption gave our H&S team great reassurance. Parents notice the difference immediately — the surface is visibly softer and the kids love the colours.', yes:31, no:0},
+      {init:'DV',name:'Dimitri Vasquez',date:'Feb 2026 · Madrid',stars:'★★★★☆',title:'Great for public realm — installation is very quick',body:'Used for a 1,200m² public plaza resurfacing. The interlocking system meant our team installed it 60% faster than conventional paving. Two winters later, not one tile has shifted or cracked.', yes:24, no:3}
+    ],
+    related: [
+      {id:'recydeck-lumber',name:'RecyDeck Lumber',     mat:'rHDPE Blend',   price:'$18 / linear m',icon:'🏗️'},
+      {id:'safeguard-barriers',name:'SafeGuard Barriers',mat:'rHDPE',        price:'$62 / unit',  icon:'🚧'},
+      {id:'greenbench',     name:'GreenBench Park Bench',mat:'100% rPET',    price:'$125 / unit', icon:'🌿'},
+      {id:'ecofence-panels',name:'EcoFence Panels',     mat:'rHDPE',         price:'$45 / panel', icon:'🏡'}
+    ]
+  },
+
+  'purestore-containers': {
+    name: 'PureStore Containers',
+    nameHighlight: 'Containers',
+    category: 'Storage',
+    material: 'rPP Grade A',
+    price: '$3.20',
+    priceUnit: '/ unit',
+    moq: '5,000 units',
+    saving: '🔬 FDA & EU Food Safe',
+    rating: '4.7', reviews: '64',
+    certs: ['✓ FDA Food Contact','✓ EU 10/2011'],
+    badges: ['🆕 New', '🔬 Food Safe'],
+    shortDesc: 'FDA and EU food-contact compliant storage containers made from 100% recycled polypropylene. BPA-free, airtight silicone-seal lids, and fully stackable. Available in 0.5L to 10L sizes for food service, retail, and household use.',
+    colors: [
+      {name:'Clear',      bg:'rgba(200,230,201,.3)'},
+      {name:'Sage Green', bg:'#7a9e7e'},
+      {name:'Slate',      bg:'#5a6a7e'},
+      {name:'Cream',      bg:'#f0e8d0'},
+      {name:'Charcoal',   bg:'#3a3a3a'}
+    ],
+    configs: ['0.5L','1L','2L','3L','5L','10L','Mixed Case (6-pack)'],
+    trust: ['🔬 FDA Approved','🇪🇺 EU Compliant','♻ 100% rPP','🚫 BPA Free'],
+    images: [
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=85',
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','100% rPP Grade A',true],
+      ['Food Safety','FDA 21 CFR + EU 10/2011',true],
+      ['BPA Free','Yes — independently tested',true],
+      ['Sizes','0.5L, 1L, 2L, 3L, 5L, 10L'],
+      ['Lid Seal','Silicone airtight gasket'],
+      ['Microwave Safe','Yes (without lid)'],
+      ['Dishwasher Safe','Yes — top rack'],
+      ['Freezer Safe','Yes, to -20°C'],
+      ['Stack Height','Up to 8 units'],
+      ['MOQ','5,000 units'],
+      ['Lead Time','3–5 weeks']
+    ],
+    features: [
+      ['FDA & EU Food Contact Approved','Complies with FDA 21 CFR and EU Regulation 10/2011. Suitable for direct contact with all food types including acidic and fatty foods.'],
+      ['100% Recycled Polypropylene','Manufactured from certified post-consumer rPP — the same polymer as new PP but with 72% lower carbon footprint per unit.'],
+      ['BPA-Free — Independently Verified','Third-party laboratory testing confirms zero Bisphenol A migration at all temperatures.'],
+      ['Airtight Silicone Lid Seal','Four-clip closure with food-grade silicone gasket maintains freshness for 3× longer than standard lids.'],
+      ['Stackable Design — Optimised Logistics','Nesting profile reduces warehouse volume by 65%. Stacking profile supports up to 8 filled units safely.'],
+      ['Dishwasher, Microwave & Freezer Safe','Full temperature range from -20°C (freezer) to +120°C (microwave). Top-rack dishwasher safe indefinitely.']
+    ],
+    reviews: [
+      {init:'HW',name:'Hannah Williams',date:'Feb 2026 · London',stars:'★★★★★',title:'Our catering team loves these',body:'Switched our entire prep kitchen to PureStore. The airtight lids have genuinely extended ingredient shelf life — we\'ve measurably cut food waste. The fact they\'re made from recycled plastic is a great story for our sustainability report too.', yes:20, no:0},
+      {init:'YT',name:'Yuki Tanaka',date:'Jan 2026 · Tokyo',stars:'★★★★★',title:'Premium feel, great sustainability credentials',body:'We supply a major Japanese retailer and they require both food safety documentation and sustainability proof. PureStore delivered both flawlessly. The FDA + EU certs plus GRS documentation made our buyer very happy.', yes:17, no:1}
+    ],
+    related: [
+      {id:'looppack-bags',   name:'LoopPack Bags',       mat:'Ocean rPET',   price:'$28 / bag',   icon:'🎒'},
+      {id:'ecosit-chair',    name:'EcoSit Garden Chair', mat:'100% rPET',    price:'$89 / unit',  icon:'🪑'},
+      {id:'greenbench',      name:'GreenBench Park Bench',mat:'100% rPET',   price:'$125 / unit', icon:'🌿'},
+      {id:'trailmark-tiles', name:'TrailMark Tiles',     mat:'Mixed rPlastic',price:'$8.50 / tile',icon:'🛤️'}
+    ]
+  },
+
+  'safeguard-barriers': {
+    name: 'SafeGuard Barriers',
+    nameHighlight: 'Barriers',
+    category: 'Outdoor',
+    material: 'rHDPE',
+    price: '$62',
+    priceUnit: '/ unit',
+    moq: '500 units',
+    saving: '🚧 Impact Absorbing Design',
+    rating: '4.5', reviews: '73',
+    certs: ['✓ CE Marked','✓ EN 13422'],
+    badges: ['🚧 Safety Grade', '♻ rHDPE'],
+    shortDesc: 'Traffic management barriers and bollards for road works, events, and car parks. Impact-absorbing design reduces vehicle damage on low-speed contact. High-visibility yellow and orange as standard.',
+    colors: [
+      {name:'Safety Yellow', bg:'#f5c518'},
+      {name:'Safety Orange', bg:'#e8722a'},
+      {name:'Red/White',     bg:'linear-gradient(90deg,#cc0000 50%,#fff 50%)'},
+      {name:'Charcoal',      bg:'#333'}
+    ],
+    configs: ['Standard Barrier 1.2m','Tall Barrier 1.8m','Water-Filled Base','Bollard 750mm','Bollard 1000mm'],
+    trust: ['✓ CE Marked','EN 13422 Tested','🌿 GRS Certified','🛡️ 10yr Warranty'],
+    images: [
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','rHDPE (Post-Consumer)',true],
+      ['Standard Height','1.2m (tall: 1.8m)'],
+      ['Weight','8 kg (unweighted)'],
+      ['Reflectivity','Class 2 retroreflective',true],
+      ['Impact Standard','EN 13422 tested',true],
+      ['Wind Load','Stable to Beaufort 8'],
+      ['Certification','CE, EN 13422, GRS'],
+      ['Linking','Interlocking end caps'],
+      ['Warranty','10 Years',true],
+      ['MOQ','500 units'],
+      ['Lead Time','4–6 weeks']
+    ],
+    features: [
+      ['EN 13422 Impact Certified','Independently tested to EN 13422 (portable road equipment). Absorbs impact without shattering, reducing vehicle damage and injury risk.'],
+      ['Class 2 Retroreflective Strips','Pre-fitted Class 2 retroreflective strips are visible at 150m in headlight conditions. Meets UK/EU temporary traffic management standards.'],
+      ['Interlocking System','End-cap linking system connects units in straight runs or 90° corners without tools. Configures in minutes for events and roadworks.'],
+      ['Water-Fillable Base Option','Hollow base version fills with water or sand on-site for additional stability in high-wind or high-traffic environments.'],
+      ['Never Rusts or Splinters','Unlike steel or timber alternatives, rHDPE barriers never corrode, splinter, or absorb water. Indefinitely reusable.'],
+      ['Custom Branding Available','Full-face printing available on orders of 1,000+ units. Common for festivals, motorsport events, and branded construction sites.']
+    ],
+    reviews: [
+      {init:'RS',name:'Rob Summers',date:'Jan 2026 · Birmingham',stars:'★★★★★',title:'Replaced our steel barriers — no looking back',body:'Lighter, never rusts, and the impact absorption actually saved us a van door repair last year when a driver clipped a row. They\'re still perfectly usable. Steel would have needed straightening. ', yes:29, no:1},
+      {init:'GF',name:'Grace Fontaine',date:'Dec 2025 · Lyon',stars:'★★★★☆',title:'Great for events — quick to configure',body:'We manage 15+ outdoor events per year. SafeGuard barriers set up 3× faster than our old concrete feet + tube system, and they look far more professional. The custom printing option is a big plus for branded events.', yes:21, no:2}
+    ],
+    related: [
+      {id:'trailmark-tiles',name:'TrailMark Tiles',      mat:'Mixed rPlastic',  price:'$8.50 / tile',icon:'🛤️'},
+      {id:'recydeck-lumber',name:'RecyDeck Lumber',      mat:'rHDPE Blend',     price:'$18 / linear m',icon:'🏗️'},
+      {id:'ecofence-panels',name:'EcoFence Panels',      mat:'rHDPE',           price:'$45 / panel', icon:'🏡'},
+      {id:'greenbench',     name:'GreenBench Park Bench',mat:'100% rPET',       price:'$125 / unit', icon:'🌿'}
+    ]
+  },
+
+  'looppack-bags': {
+    name: 'LoopPack Bags',
+    nameHighlight: 'Bags',
+    category: 'Accessories',
+    material: 'Ocean rPET',
+    price: '$28',
+    priceUnit: '/ bag',
+    moq: '1,000 bags',
+    saving: '🌊 12 Ocean Bottles Per Bag',
+    rating: '4.8', reviews: '155',
+    certs: ['✓ Ocean Bound Plastic','✓ GRS Certified'],
+    badges: ['🌊 Ocean rPET', '♻ Eco+'],
+    shortDesc: 'Premium backpacks and tote bags woven from fiber recovered from ocean-bound plastic waste. Each bag removes 12 plastic bottles from coastal communities. Water-resistant coating. Lifetime repair guarantee.',
+    colors: [
+      {name:'Ocean Navy',  bg:'#1a3a5c'},
+      {name:'Coral',       bg:'#e8602a'},
+      {name:'Sage Green',  bg:'#7a9e7e'},
+      {name:'Sand',        bg:'#c8a97e'},
+      {name:'Slate',       bg:'#4a5568'}
+    ],
+    configs: ['20L Backpack','35L Backpack','15L Daypack','Tote (Large)','Tote (Small)'],
+    trust: ['🌊 Ocean Plastic','✓ GRS Certified','🔧 Lifetime Repair','💧 IPX4 Waterproof'],
+    images: [
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85',
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','GRS Ocean rPET Yarn',true],
+      ['Bottles Per Bag','12 × 500ml ocean-bound bottles',true],
+      ['Water Resistance','IPX4 splash-proof coating'],
+      ['Capacity','20L / 35L / 15L / Tote'],
+      ['Laptop Sleeve','Fits 15" (20L & 35L)'],
+      ['Zips','YKK recycled-element zips'],
+      ['Straps','Padded recycled foam'],
+      ['Certifications','GRS, OBP, bluesign®',true],
+      ['Warranty','Lifetime repair guarantee',true],
+      ['MOQ','1,000 units'],
+      ['Lead Time','5–8 weeks']
+    ],
+    features: [
+      ['12 Ocean-Bound Bottles Per Bag','Each bag uses fiber from 12 × 500ml plastic bottles recovered from coastal communities within 50km of a waterway — before they reach the ocean.'],
+      ['GRS + Ocean Bound Plastic Certified','Full chain-of-custody certification. Every unit comes with a QR-traceable digital certificate your customers can scan.'],
+      ['Lifetime Repair Guarantee','Any manufacturing defect repaired free of charge for the life of the bag. No questions asked, no time limit.'],
+      ['IPX4 Water Resistance','DWR (Durable Water Repellent) finish sheds rain and splash. Zips are sealed with a water-resistant backing tape.'],
+      ['YKK Recycled-Element Zips','All zips use YKK NATULON® recycled-element sliders — the industry benchmark for smooth, durable, sustainable zip hardware.'],
+      ['Custom Branding & Colorways','Pantone colour matching, custom woven labels, screen print, or embroidery available on orders of 3,000+ units. Minimum 4-week lead time.']
+    ],
+    reviews: [
+      {init:'ES',name:'Emma Schmidt',date:'Mar 2026 · Hamburg',stars:'★★★★★',title:'Our most popular sustainable merch item',body:'We sell these at our eco-tourism events. They sell out every time. The QR traceability is a huge talking point — guests scan it and immediately see which ocean community their bag helped. Incredibly powerful.', yes:42, no:0},
+      {init:'MC',name:'Marc Chabrier',date:'Jan 2026 · Paris',stars:'★★★★★',title:'Quality matches premium non-recycled brands',body:'We were worried about quality vs conventional bags. Completely unfounded — the finish, zip action, and stitching are indistinguishable from premium non-recycled bags costing twice as much.', yes:33, no:1}
+    ],
+    related: [
+      {id:'purestore-containers',name:'PureStore Containers',mat:'rPP Grade A', price:'$3.20 / unit', icon:'🪣'},
+      {id:'ecosit-chair',  name:'EcoSit Garden Chair',mat:'100% rPET',   price:'$89 / unit',  icon:'🪑'},
+      {id:'greenbench',    name:'GreenBench Park Bench',mat:'100% rPET', price:'$125 / unit', icon:'🌿'},
+      {id:'ecosit-table',  name:'EcoSit Dining Table', mat:'rHDPE Blend',price:'$245 / unit', icon:'🪵'}
+    ]
+  },
+
+  'ecofence-panels': {
+    name: 'EcoFence Panels',
+    nameHighlight: 'Panels',
+    category: 'Construction',
+    material: 'rHDPE',
+    price: '$45',
+    priceUnit: '/ panel',
+    moq: '500 panels',
+    saving: '🏡 Zero Maintenance Forever',
+    rating: '4.7', reviews: '96',
+    certs: ['✓ CE Marked','✓ BS 1722'],
+    badges: ['🔒 Privacy Grade', '♻ rHDPE'],
+    shortDesc: 'Privacy fence panels that never need painting, staining, or treating. Resistant to insects, rot, UV degradation, and extreme weather. Available in a realistic wood-grain texture finish in six colour options.',
+    colors: [
+      {name:'Light Oak',   bg:'#c8a97e'},
+      {name:'Dark Teak',   bg:'#5c3d1e'},
+      {name:'Slate Grey',  bg:'#4a5568'},
+      {name:'Charcoal',    bg:'#2d2d2d'},
+      {name:'Chalk White', bg:'#e8e8e8'},
+      {name:'Forest Green',bg:'#2d5a27'}
+    ],
+    configs: ['Standard Panel 1.8×1.8m','Tall Panel 2.1×1.8m','Gate (Single)','Gate (Double)','Post'],
+    trust: ['🏡 BS 1722 Compliant','🌿 GRS Certified','♻ Carbon Neutral','🛡️ 25yr Warranty'],
+    images: [
+      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=85',
+      'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','rHDPE (Post-Consumer)',true],
+      ['Panel Size','1.8 × 1.8 m (standard)'],
+      ['Thickness','38mm'],
+      ['Texture','Embossed wood-grain'],
+      ['Colour Options','6 standard + custom'],
+      ['UV Stability','Grade A — 25+ Years',true],
+      ['Wind Load','BS 1722 Wind Zone 3'],
+      ['Rot / Insect Proof','100%',true],
+      ['Certifications','CE, BS 1722, GRS'],
+      ['Warranty','25 Years Structural',true],
+      ['MOQ','500 panels'],
+      ['Lead Time','5–7 weeks']
+    ],
+    features: [
+      ['Realistic Wood-Grain Embossing','Deep embossed wood-grain texture is visually indistinguishable from timber at a conversational distance. No paint required — colour is through-body.'],
+      ['25-Year Zero-Maintenance Guarantee','No painting, staining, pressure treating, or replacement due to rot. Wash down with a hose once a year and nothing else.'],
+      ['BS 1722 Wind Load Certified','Panel and post system certified to BS 1722 Wind Zone 3 — equivalent to sustained 90km/h wind speed.'],
+      ['Full Panel & Gate System','Matching single and double gates, posts, and hardware available. Complete garden enclosure from a single supplier.'],
+      ['100% Rot & Insect Proof','The material provides zero nutrition or moisture for rot, fungus, termites, or any wood-boring insects. No treatment ever required.'],
+      ['Through-Body Colour','Colour is pigmented throughout the full thickness — scratches and cuts are the same colour as the surface. No exposed grey core.']
+    ],
+    reviews: [
+      {init:'PW',name:'Paul Whitmore',date:'Feb 2026 · Bristol',stars:'★★★★★',title:'Looks exactly like wood — nobody believes it\'s plastic',body:'We installed 120 panels in a housing development. Residents consistently say it looks better than the timber fencing on neighbouring plots, and they love not having to paint it every year. Would specify again.', yes:35, no:0},
+      {init:'KM',name:'Katerina Müller',date:'Jan 2026 · Munich',stars:'★★★★★',title:'Perfect for our commercial landscaping projects',body:'We landscape commercial properties where maintenance cost is a major client concern. EcoFence removes fencing from the maintenance schedule entirely. Clients love the business case and the sustainability credentials.', yes:28, no:1}
+    ],
+    related: [
+      {id:'recydeck-lumber',name:'RecyDeck Lumber',     mat:'rHDPE Blend', price:'$18 / linear m',icon:'🏗️'},
+      {id:'safeguard-barriers',name:'SafeGuard Barriers',mat:'rHDPE',     price:'$62 / unit',  icon:'🚧'},
+      {id:'trailmark-tiles',name:'TrailMark Tiles',     mat:'Mixed rPlastic',price:'$8.50 / tile',icon:'🛤️'},
+      {id:'greenbench',     name:'GreenBench Park Bench',mat:'100% rPET', price:'$125 / unit', icon:'🌿'}
+    ]
+  },
+
+  'greenbench': {
+    name: 'GreenBench Park Bench',
+    nameHighlight: 'Park',
+    category: 'Outdoor',
+    material: '100% rPET',
+    price: '$125',
+    priceUnit: '/ unit',
+    moq: '100 units',
+    saving: '🌿 60 Recycled Bottles Per Bench',
+    rating: '4.8', reviews: '183',
+    certs: ['✓ BS EN 581','✓ GRS Certified'],
+    badges: ['🌿 Park Grade', '♻ 100% rPET'],
+    shortDesc: 'Classic park bench manufactured from 60 recycled PET bottles. Meets BS EN 581 outdoor furniture standard. Suitable for coastal and high-humidity environments. Vandal-resistant fixings as standard.',
+    colors: [
+      {name:'Forest Green', bg:'#2d5a27'},
+      {name:'Charcoal',     bg:'#333'},
+      {name:'Teak Brown',   bg:'#7a5c3e'},
+      {name:'Slate Grey',   bg:'#4a5568'},
+      {name:'Heritage Red', bg:'#8b1a1a'}
+    ],
+    configs: ['1.8m 3-Seat','1.5m 2-Seat','Backed (Standard)','Backless','Curved (Radius 5m)'],
+    trust: ['✓ BS EN 581','🌿 GRS Certified','🚢 Marine Grade','🛡️ 20yr Warranty'],
+    images: [
+      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=85',
+      'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1000&q=85',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&q=85',
+      'https://images.unsplash.com/photo-1493663284031-b7e3aaa4cab4?w=1000&q=85'
+    ],
+    specs: [
+      ['Material','100% rPET (Post-Consumer)',true],
+      ['Bottles Per Bench','60 × 500ml PET bottles',true],
+      ['Standard Length','1.8m (1.5m available)'],
+      ['Capacity','3 adults (1.8m)'],
+      ['Weight','22 kg'],
+      ['Load Capacity','350 kg distributed'],
+      ['UV Stability','Grade A — 20+ Years',true],
+      ['Salt Spray','1,000+ hours (ISO 9227)',true],
+      ['Fixings','Marine-grade stainless A4'],
+      ['Certifications','CE, BS EN 581, GRS'],
+      ['Warranty','20 Years Structural',true],
+      ['MOQ','100 units'],
+      ['Lead Time','5–7 weeks']
+    ],
+    features: [
+      ['60 Recycled PET Bottles Per Bench','Each bench gives a second life to 60 × 500ml PET bottles. Certified chain-of-custody documentation provided with every order.'],
+      ['BS EN 581 Outdoor Furniture Certified','Fully tested to British and European outdoor furniture standard — covering structural integrity, stability, and durability.'],
+      ['Marine Grade — Coastal Approved','Tested to 1,000+ hours salt spray (ISO 9227). Installed on promenades, seafronts, and harbour estates across the UK and EU.'],
+      ['Vandal-Resistant Fixings','All assembly bolts are A4 marine-grade stainless steel with anti-tamper Torx heads as standard. Graffiti wipes off with standard spray.'],
+      ['Armrest and Centre-Rest Options','Anti-lie centre armrests available on all configurations — a discreet feature often required by local authorities and public realm standards.'],
+      ['Custom Engraving & Memorial Plates','Dedication plates in stainless steel or engraved direct to the slat — popular for memorial benches and civic installations.']
+    ],
+    reviews: [
+      {init:'FA',name:'Fiona Andrews',date:'Mar 2026 · Edinburgh',stars:'★★★★★',title:'Our council\'s default bench specification',body:'We\'ve installed GreenBenches across 28 parks over two years. Maintenance call-outs have dropped to zero compared to our previous timber supplier. The sustainability story aligns perfectly with our council\'s net-zero commitments.', yes:52, no:0},
+      {init:'BL',name:'Björn Larsson',date:'Feb 2026 · Gothenburg',stars:'★★★★★',title:'Coastal promenade — 2 years, perfect condition',body:'Installed 40 benches on a seafront promenade in 2024. Salt spray, winter storms, and endless public use — they look exactly as installed. The marine-grade rating isn\'t marketing, it\'s genuine. Highly recommended.', yes:41, no:1}
+    ],
+    related: [
+      {id:'ecosit-chair',   name:'EcoSit Garden Chair', mat:'100% rPET',    price:'$89 / unit',  icon:'🪑'},
+      {id:'trailmark-tiles',name:'TrailMark Tiles',     mat:'Mixed rPlastic',price:'$8.50 / tile',icon:'🛤️'},
+      {id:'ecosit-table',   name:'EcoSit Dining Table', mat:'rHDPE Blend',  price:'$245 / unit', icon:'🪵'},
+      {id:'ecofence-panels',name:'EcoFence Panels',     mat:'rHDPE',        price:'$45 / panel', icon:'🏡'}
+    ]
+  }
+
+}; // end PRODUCTS
+
+/* ══════════════════════════════════════
+   RENDER LOGIC
+══════════════════════════════════════ */
+const params = new URLSearchParams(window.location.search);
+const id     = params.get('id');
+const p      = PRODUCTS[id];
+const root   = document.getElementById('page-root');
+
+if (!p) {
+  // ─── NOT FOUND ───
+  root.innerHTML = `
+    <div class="bc-bar">
+      <div class="bc"><a href="products.html">Products</a><span class="sep">›</span><span class="cur">Not Found</span></div>
+    </div>
+    <div class="not-found">
+      <h2>Product Not Found</h2>
+      <p>We couldn't find a product with that ID. Browse the full catalogue below.</p>
+      <a href="products.html">← Back to Products</a>
+    </div>`;
+} else {
+  // ─── Update page title ───
+  document.title = `${p.name} — HitShi Products`;
+
+  // ─── Helpers ───
+  const starsFor = rating => {
+    const n = parseFloat(rating);
+    return '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
+  };
+
+  // ─── Build images HTML ───
+  const thumbsHtml = p.images.map((src,i) => `
+    <div class="thumb${i===0?' on':''}" data-i="${i}">
+      <img src="${src.replace('w=1000','w=180').replace('q=85','q=65')}" alt="View ${i+1}">
+    </div>`).join('');
+
+  // ─── Gallery column ───
+  const galleryHtml = `
+    <div class="gallery-col">
+      <div class="viewer" id="viewer">
+        <img class="vimg" id="mainImg" src="${p.images[0]}" alt="${p.name}">
+        <div class="vcounter"><span id="imgN">1</span> / <span id="imgT">${p.images.length}</span></div>
+        <div class="vbadges">
+          ${p.badges.map(b=>`<span class="vb ${b.includes('★')||b.includes('🏆')||b.includes('Pro')||b.includes('New')?'vb-lime':'vb-grn'}">${b}</span>`).join('')}
+        </div>
+        <div class="zoom-hint">🔍 Click to zoom</div>
+        <button class="varrow" id="vPrev">←</button>
+        <button class="varrow" id="vNext">→</button>
+      </div>
+      <div class="thumbs">${thumbsHtml}</div>
+    </div>`;
+
+  // ─── Specs tab ───
+  const specsHtml = p.specs.map(([k,v,hi])=>
+    `<tr><td>${k}</td><td${hi?' class="sh"':''}>${v}</td></tr>`).join('');
+
+  // ─── Features tab ───
+  const featuresHtml = p.features.map(([title,body])=>`
+    <div class="fi">
+      <div class="fck">✓</div>
+      <div class="ft"><strong>${title}</strong><span>${body}</span></div>
+    </div>`).join('');
+
+  // ─── Reviews tab ───
+  const revCardsHtml = p.reviews.map(r=>`
+    <div class="rcard">
+      <div class="rcard-top">
+        <div class="rav-row">
+          <div class="rav">${r.init}</div>
+          <div><div class="rname">${r.name}</div><div class="rdate">${r.date}</div></div>
+        </div>
+        <div style="text-align:right">
+          <div class="rstars">${r.stars}</div>
+          <div class="rvp">✓ Verified Purchase</div>
+        </div>
+      </div>
+      <div class="rtitle">${r.title}</div>
+      <div class="rbody">${r.body}</div>
+      <div class="rhelpful">Helpful? <a href="#">Yes (${r.yes})</a> · <a href="#">No (${r.no})</a></div>
+    </div>`).join('');
+
+  // ─── Rating bars ───
+  const ratingVal = parseFloat(p.rating);
+  const ratingBars = [
+    [5, Math.round((ratingVal - 3.5) * 40 + 55)],
+    [4, Math.round((5 - ratingVal) * 25 + 10)],
+    [3, 5], [2, 2], [1, 1]
+  ].map(([s,w])=>`
+    <div class="rbar-row">
+      <span class="rbar-lbl">${s}★</span>
+      <div class="rbar-track"><div class="rbar-fill" style="width:${Math.max(1,Math.min(95,w))}%"></div></div>
+      <span class="rbar-pct">${Math.max(1,Math.min(95,w))}%</span>
+    </div>`).join('');
+
+  // ─── Related products ───
+  const relatedHtml = p.related.map((r,i)=>`
+    <a href="product-detail.html?id=${r.id}" class="rel-card reveal d${i+1}">
+      <div class="rel-img">${r.icon}</div>
+      <div class="rel-body">
+        <div class="rel-name">${r.name}</div>
+        <div class="rel-mat">${r.mat}</div>
+        <div class="rel-price">${r.price}</div>
+      </div>
+    </a>`).join('');
+
+  // ─── Color swatches ───
+  const swatchesHtml = p.colors.map((c,i)=>`
+    <div class="sw${i===0?' on':''}" data-c="${c.name}" style="background:${c.bg}" title="${c.name}"></div>`).join('');
+
+  // ─── Config buttons ───
+  const configsHtml = p.configs.map((c,i)=>`
+    <button class="sizebt${i===0?' on':''}">${c}</button>`).join('');
+
+  // ─── Trust items ───
+  const trustHtml = p.trust.map(t=>`<div class="ti">${t}</div>`).join('');
+
+  // ─── Build title with highlight ───
+  const titleHtml = p.name.replace(p.nameHighlight, `<span class="hi">${p.nameHighlight}</span>`);
+
+  // ─── RENDER ───
+  root.innerHTML = `
+    <div class="bc-bar">
+      <div class="bc">
+        <a href="index.html">Home</a><span class="sep">›</span>
+        <a href="products.html">Products</a><span class="sep">›</span>
+        <a href="products.html">${p.category}</a><span class="sep">›</span>
+        <span class="cur">${p.name}</span>
+      </div>
+    </div>
+
+    <div class="product-wrap">
+      ${galleryHtml}
+
+      <div class="detail-col">
+        <div class="prod-cat">${p.category}</div>
+        <h1 class="prod-title">${titleHtml}</h1>
+
+        <div class="rrow">
+          <span class="stars">${starsFor(p.rating)}</span>
+          <span class="rnum">${p.rating}</span>
+          <span class="rcnt">(${p.reviews} reviews)</span>
+          <div class="rdiv"></div>
+          ${p.certs.map(c=>`<span class="vcert">${c}</span>`).join('')}
+        </div>
+
+        <div class="price-block">
+          <div>
+            <div class="price-big">${p.price}<span class="price-unit"> ${p.priceUnit}</span></div>
+            <div class="price-moq">Min. order: <strong>${p.moq}</strong> · Bulk tiers available</div>
+          </div>
+          <span class="price-save">${p.saving}</span>
+        </div>
+
+        <p class="sdesc">${p.shortDesc}</p>
+
+        <div class="opt-label">Colour — <span id="colorName">${p.colors[0].name}</span></div>
+        <div class="swatches">${swatchesHtml}</div>
+
+        <div class="opt-label">Configuration</div>
+        <div class="sizebts">${configsHtml}</div>
+
+        <div class="action-row">
+          <div class="qty">
+            <button class="qbtn" id="qMinus">−</button>
+            <input class="qval" id="qVal" type="number" value="${parseInt(p.moq)}" min="${parseInt(p.moq)}" step="${parseInt(p.moq)}" readonly>
+            <button class="qbtn" id="qPlus">+</button>
+          </div>
+          <a href="contact.html?product=${encodeURIComponent(p.name)}" class="btn-quote">✉ Request Quote</a>
+          <button class="btn-samp">📦 Get Sample</button>
+        </div>
+
+        <div class="trust">${trustHtml}</div>
+
+        <div class="tabs-nav">
+          <button class="tbt on" data-t="specs">Specifications</button>
+          <button class="tbt" data-t="features">Features</button>
+          <button class="tbt" data-t="reviews">Reviews</button>
+          <button class="tbt" data-t="shipping">Shipping</button>
+        </div>
+
+        <div class="tpanel on" id="t-specs">
+          <table class="stab">${specsHtml}</table>
+        </div>
+        <div class="tpanel" id="t-features">
+          <div class="flist">${featuresHtml}</div>
+        </div>
+        <div class="tpanel" id="t-reviews">
+          <div class="rev-summary">
+            <div>
+              <div class="rev-big">${p.rating}</div>
+              <div class="rev-big-stars">${starsFor(p.rating)}</div>
+              <div class="rev-big-cnt">${p.reviews} verified reviews</div>
+            </div>
+            <div class="rbars">${ratingBars}</div>
+          </div>
+          <div class="rcards">${revCardsHtml}</div>
+        </div>
+        <div class="tpanel" id="t-shipping">
+          <div class="ship-grid">
+            <div class="sc"><span class="sc-icon">🚢</span><div class="sc-title">Sea Freight (Standard)</div><div class="sc-desc">6–8 week lead time. Full container or LCL groupage. All customs documentation included.</div></div>
+            <div class="sc"><span class="sc-icon">✈️</span><div class="sc-title">Air Freight (Express)</div><div class="sc-desc">3–5 day delivery for urgent sample runs and small orders under 500 kg.</div></div>
+            <div class="sc"><span class="sc-icon">🌍</span><div class="sc-title">38 Countries</div><div class="sc-desc">Europe, Asia-Pacific, Middle East, and the Americas. Full DDP available.</div></div>
+            <div class="sc"><span class="sc-icon">🌱</span><div class="sc-title">Carbon-Neutral Logistics</div><div class="sc-desc">All shipping offset via Gold Standard carbon credits, included in your sustainability report.</div></div>
+            <div class="sc"><span class="sc-icon">📦</span><div class="sc-title">Flat-Pack Efficiency</div><div class="sc-desc">65% less freight volume vs assembled goods. Maximise container utilisation.</div></div>
+            <div class="sc"><span class="sc-icon">🏭</span><div class="sc-title">3 Global Dispatch Hubs</div><div class="sc-desc">Rotterdam · Singapore · São Paulo — ships from the hub closest to you.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="related">
+      <div class="sec-label reveal">You May Also Like</div>
+      <div class="rel-head">
+        <h2 class="rel-title">Complete the <span class="hi">Collection</span></h2>
+        <a href="products.html" class="rel-more">View All Products →</a>
+      </div>
+      <div class="rel-grid">${relatedHtml}</div>
+    </div>`;
+
+  // ─── Update mobile price bar ───
+  document.getElementById('mob-price').innerHTML = `${p.price}<span> ${p.priceUnit}</span>`;
+  document.getElementById('mob-bar').style.cssText = 'display:flex';
+
+  // ─── Wire up gallery ───
+  let activeI = 0;
+  const mainImg = document.getElementById('mainImg');
+  const imgN    = document.getElementById('imgN');
+
+  function goImg(n) {
+    activeI = (n + p.images.length) % p.images.length;
+    mainImg.classList.add('switching');
+    setTimeout(() => { mainImg.src = p.images[activeI]; mainImg.classList.remove('switching'); }, 220);
+    imgN.textContent = activeI + 1;
+    document.querySelectorAll('.thumb').forEach((t,i) => t.classList.toggle('on', i === activeI));
+    document.querySelector('.thumb.on')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  }
+  document.getElementById('vPrev').addEventListener('click', e => { e.stopPropagation(); goImg(activeI-1); });
+  document.getElementById('vNext').addEventListener('click', e => { e.stopPropagation(); goImg(activeI+1); });
+  document.querySelectorAll('.thumb').forEach((t,i) => t.addEventListener('click', () => goImg(i)));
+
+  const viewer = document.getElementById('viewer');
+  viewer.addEventListener('click', e => {
+    if (e.target.closest('.varrow')) return;
+    viewer.classList.toggle('zoomed');
+    if (viewer.classList.contains('zoomed')) {
+      const r = viewer.getBoundingClientRect();
+      mainImg.style.transformOrigin = `${((e.clientX-r.left)/r.width*100).toFixed(1)}% ${((e.clientY-r.top)/r.height*100).toFixed(1)}%`;
+    } else mainImg.style.transformOrigin = 'center';
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight') goImg(activeI+1);
+    if (e.key==='ArrowLeft')  goImg(activeI-1);
+    if (e.key==='Escape')     viewer.classList.remove('zoomed');
+  });
+  let tX = 0;
+  viewer.addEventListener('touchstart', e => { tX = e.touches[0].clientX; }, {passive:true});
+  viewer.addEventListener('touchend',   e => { const d = tX - e.changedTouches[0].clientX; if(Math.abs(d)>45) goImg(d>0?activeI+1:activeI-1); });
+
+  // ─── Swatches ───
+  document.querySelectorAll('.sw').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.sw').forEach(x => x.classList.remove('on'));
+      s.classList.add('on');
+      document.getElementById('colorName').textContent = s.dataset.c;
+    });
+  });
+
+  // ─── Config buttons ───
+  document.querySelectorAll('.sizebt').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.sizebt').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    });
+  });
+
+  // ─── Qty ───
+  const qVal = document.getElementById('qVal');
+  const step  = parseInt(p.moq);
+  document.getElementById('qMinus').addEventListener('click', () => { qVal.value = Math.max(step, +qVal.value - step); });
+  document.getElementById('qPlus').addEventListener('click',  () => { qVal.value = +qVal.value + step; });
+
+  // ─── Tabs ───
+  document.querySelectorAll('.tbt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tbt').forEach(b => b.classList.remove('on'));
+      document.querySelectorAll('.tpanel').forEach(pp => pp.classList.remove('on'));
+      btn.classList.add('on');
+      document.getElementById('t-' + btn.dataset.t).classList.add('on');
+    });
+  });
+
+  // ─── Hover state for cursor ───
+  document.querySelectorAll('a,button,.thumb,.sw,.sizebt,.tbt,.rel-card,.rcard,.fi,.sc').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hov'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hov'));
+  });
+
+  // ─── Scroll reveals ───
+  const obs = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); }); }, {threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor'), ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cur.style.transform=`translate(${mx-5}px,${my-5}px)`; });
+(function ar(){ rx+=(mx-rx)*.12; ry+=(my-ry)*.12; ring.style.transform=`translate(${rx-18}px,${ry-18}px)`; requestAnimationFrame(ar); })();
+
+/* ── BG CANVAS ── */
+const cv=document.getElementById('bg-canvas'),c=cv.getContext('2d');
+let W,H,pts=[];
+const rsz=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;};rsz();window.addEventListener('resize',rsz);
+class Dot{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.3+.25;this.vx=(Math.random()-.5)*.22;this.vy=(Math.random()-.5)*.22;this.a=Math.random()*.5+.08;this.col=Math.random()>.5?'0,230,118':'118,255,3';}
+  step(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W)this.vx*=-1;if(this.y<0||this.y>H)this.vy*=-1;}
+  draw(){c.beginPath();c.arc(this.x,this.y,this.r,0,Math.PI*2);c.fillStyle=`rgba(${this.col},${this.a})`;c.fill();}}
+for(let i=0;i<120;i++)pts.push(new Dot());
+(function loop(){c.clearRect(0,0,W,H);
+  for(let i=0;i<pts.length;i++){for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){c.beginPath();c.moveTo(pts[i].x,pts[i].y);c.lineTo(pts[j].x,pts[j].y);c.strokeStyle=`rgba(0,230,118,${.035*(1-d/110)})`;c.lineWidth=.5;c.stroke();}}pts[i].step();pts[i].draw();}
+  requestAnimationFrame(loop);})();
+
+/* ── NAV ── */
+window.addEventListener('scroll', () => document.getElementById('nav').classList.toggle('scrolled', scrollY>60));
+document.getElementById('hamburger').addEventListener('click', function(){ this.classList.toggle('active'); document.getElementById('mm').classList.toggle('open'); });
+</script>
+</body>
+</html>

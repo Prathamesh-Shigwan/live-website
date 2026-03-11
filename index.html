@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HitShi — Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--green:#00e676;--teal:#00bcd4;--dark:#050e0a;--dark2:#0a1a12;--mid:#112318;--light:#e8f5e9;--accent:#76ff03;--warn:#ffea00;--text:#c8e6c9;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none;}
+#cursor{width:12px;height:12px;background:var(--accent);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;mix-blend-mode:exclusion;}
+#cursor-ring{width:38px;height:38px;border:1.5px solid var(--green);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transition:width .3s,height .3s,border-color .3s;mix-blend-mode:exclusion;}
+#bg-canvas{position:fixed;inset:0;z-index:0;opacity:.3;}
+.noise-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.018;}
+
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:100;padding:1.2rem 3rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(18px);background:rgba(5,14,10,0.6);border-bottom:1px solid rgba(0,230,118,0.08);transition:background .4s;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:var(--accent);letter-spacing:-.04em;text-decoration:none;}
+.logo span{color:var(--teal);}
+.nav-links{display:flex;gap:2rem;list-style:none;}
+.nav-links a{color:var(--text);text-decoration:none;font-size:.85rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;position:relative;transition:color .3s;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;background:var(--accent);transition:width .3s;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-cta{background:var(--accent);color:var(--dark);border:none;padding:.55rem 1.4rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.05em;cursor:none;border-radius:2px;transition:background .3s,transform .2s;text-decoration:none;}
+.nav-cta:hover{background:var(--green);transform:translateY(-2px);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:4px;}
+.hamburger span{width:24px;height:2px;background:var(--accent);display:block;transition:.3s;}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+.mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;background:rgba(5,14,10,0.98);backdrop-filter:blur(20px);z-index:99;border-bottom:1px solid rgba(0,230,118,0.12);transform:translateY(-10px);opacity:0;transition:transform .3s,opacity .3s;pointer-events:none;}
+.mobile-menu.open{display:block;transform:translateY(0);opacity:1;pointer-events:all;}
+.mobile-nav{list-style:none;padding:1.5rem 2rem;}
+.mobile-nav li{border-bottom:1px solid rgba(0,230,118,0.06);}
+.mobile-nav a{display:block;padding:.9rem 0;color:var(--text);text-decoration:none;font-size:1rem;font-family:'Syne',sans-serif;font-weight:600;transition:color .2s;}
+.mobile-nav a:hover,.mobile-nav a.active{color:var(--accent);}
+
+/* HERO SLIDESHOW */
+#hero{position:relative;z-index:2;min-height:100vh;overflow:hidden;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease;display:flex;align-items:center;}
+.slide.active{opacity:1;position:relative;}
+.slide-bg{position:absolute;inset:0;z-index:0;}
+.slide-img{width:100%;height:100%;object-fit:cover;object-position:center;}
+.slide-video{width:100%;height:100%;object-fit:cover;}
+.slide-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(5,14,10,.88) 40%,rgba(5,14,10,.4));}
+.slide-content{position:relative;z-index:2;padding:9rem 3rem 6rem;max-width:780px;}
+.hero-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);padding:.35rem 1rem;border-radius:100px;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:1.5rem;animation:fadeUp .8s .2s both;}
+.hero-tag .dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);}}
+.slide-content h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.8rem,6.5vw,6rem);line-height:.95;letter-spacing:-.04em;color:#fff;animation:fadeUp .8s .4s both;}
+.slide-content h1 .hl{color:var(--accent);display:block;}
+.slide-content h1 .outline{-webkit-text-stroke:1.5px rgba(255,255,255,.3);color:transparent;display:block;}
+.slide-sub{margin:1.5rem 0 2.5rem;font-size:1rem;line-height:1.75;color:rgba(200,230,201,.65);max-width:480px;animation:fadeUp .8s .6s both;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;animation:fadeUp .8s .8s both;}
+.btn-primary{background:var(--accent);color:var(--dark);border:none;padding:.85rem 2.2rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;cursor:none;border-radius:3px;transition:transform .2s,box-shadow .3s;box-shadow:0 0 30px rgba(118,255,3,.25);text-decoration:none;display:inline-block;position:relative;overflow:hidden;}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);transform:translateX(-100%);transition:transform .5s ease;}
+.btn-primary:hover::after{transform:translateX(100%);}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(118,255,3,.5),0 8px 30px rgba(0,0,0,.3);}
+.btn-ghost{background:transparent;border:1px solid rgba(0,230,118,.35);color:var(--green);padding:.85rem 2.2rem;font-family:'Syne',sans-serif;font-weight:600;font-size:.88rem;cursor:none;border-radius:3px;transition:background .3s,transform .2s,border-color .3s,box-shadow .3s;text-decoration:none;display:inline-block;position:relative;overflow:hidden;}
+.btn-ghost::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,230,118,.0),rgba(0,230,118,.12));opacity:0;transition:opacity .3s;}
+.btn-ghost:hover::before{opacity:1;}
+.btn-ghost:hover{background:rgba(0,230,118,.06);transform:translateY(-3px);border-color:var(--green);box-shadow:0 0 20px rgba(0,230,118,.15);}
+
+/* SLIDE CONTROLS */
+.slide-controls{position:absolute;bottom:2.5rem;left:3rem;z-index:10;display:flex;align-items:center;gap:1rem;}
+.slide-dot{width:8px;height:8px;border-radius:50%;background:rgba(200,230,201,.3);cursor:none;transition:background .3s,transform .3s;}
+.slide-dot.active{background:var(--accent);transform:scale(1.4);}
+.slide-arrows{position:absolute;bottom:2rem;right:3rem;z-index:10;display:flex;gap:.8rem;}
+.slide-arrow{width:44px;height:44px;border:1px solid rgba(0,230,118,.25);background:rgba(5,14,10,.5);backdrop-filter:blur(10px);border-radius:2px;color:var(--green);font-size:1.1rem;cursor:none;transition:background .3s,border-color .3s;display:flex;align-items:center;justify-content:center;}
+.slide-arrow:hover{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.5);}
+.slide-progress{position:absolute;bottom:0;left:0;height:3px;background:var(--accent);transition:width .1s linear;z-index:10;}
+
+/* SLIDE THUMBNAILS */
+.slide-thumbs{position:absolute;right:2rem;top:50%;transform:translateY(-50%);z-index:10;display:flex;flex-direction:column;gap:.8rem;}
+.slide-thumb{width:60px;height:45px;border-radius:2px;border:2px solid transparent;overflow:hidden;cursor:none;opacity:.5;transition:opacity .3s,border-color .3s;}
+.slide-thumb.active{opacity:1;border-color:var(--accent);}
+.slide-thumb img{width:100%;height:100%;object-fit:cover;}
+
+/* STAT RIBBON — animated */
+.stat-ribbon{background:rgba(10,26,18,.9);backdrop-filter:blur(10px);border-top:1px solid rgba(0,230,118,.08);padding:2rem 3rem;display:flex;gap:4rem;flex-wrap:wrap;position:relative;z-index:3;overflow:hidden;}
+/* scan-line sweep */
+.stat-ribbon::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent 40%,rgba(0,230,118,.06) 50%,transparent 60%);animation:scanLine 4s ease-in-out infinite;}
+@keyframes scanLine{0%{left:-60%}100%{left:120%}}
+.stat{display:flex;flex-direction:column;position:relative;}
+/* each stat gets a subtle entrance */
+.stat:nth-child(1){animation:fadeUp .6s .1s both;}
+.stat:nth-child(2){animation:fadeUp .6s .2s both;}
+.stat:nth-child(3){animation:fadeUp .6s .3s both;}
+.stat:nth-child(4){animation:fadeUp .6s .4s both;}
+.stat:nth-child(5){animation:fadeUp .6s .5s both;}
+.stat-num{font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;color:var(--accent);letter-spacing:-.04em;line-height:1;transition:text-shadow .3s;}
+.stat:hover .stat-num{text-shadow:0 0 20px rgba(118,255,3,.6),0 0 40px rgba(118,255,3,.2);}
+.stat-label{font-size:.75rem;color:rgba(200,230,201,.5);letter-spacing:.06em;margin-top:.2rem;transition:color .3s;}
+.stat:hover .stat-label{color:rgba(200,230,201,.8);}
+
+/* MARQUEE */
+.marquee-strip{position:relative;z-index:2;background:var(--accent);padding:.85rem 0;overflow:hidden;border-top:1px solid rgba(0,0,0,.15);}
+.marquee-track{display:flex;gap:3rem;width:max-content;animation:marquee 22s linear infinite;}
+.marquee-item{font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dark);white-space:nowrap;display:flex;align-items:center;gap:1rem;}
+.marquee-item .sep{color:rgba(0,0,0,.3);}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* SECTION BASE */
+section.content{position:relative;z-index:2;padding:7rem 3rem;}
+.section-label{font-size:.73rem;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;}
+.section-label::before{content:'';display:block;width:30px;height:1px;background:var(--green);transition:width .6s ease;}
+.section-label.visible::before{width:50px;}
+/* h2 split-word highlight animation */
+h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2rem,4.5vw,3.5rem);letter-spacing:-.04em;color:#fff;line-height:1.05;}
+h2 .hl{color:var(--accent);display:inline-block;transition:text-shadow .4s;}
+h2.visible .hl{text-shadow:0 0 40px rgba(118,255,3,.25);}
+
+/* ═══════════════════════════════════════
+   PROCESS — VIVID HOVER FIX
+═══════════════════════════════════════ */
+#process{background:var(--dark2);}
+.process-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1.5px;margin-top:4rem;
+  border:1.5px solid rgba(0,230,118,.12);
+}
+.process-card{
+  background:var(--dark2);
+  padding:2.5rem 2rem;
+  transition:background .4s, transform .4s, box-shadow .4s, border-left-color .4s;
+  position:relative;overflow:hidden;
+  border-left:3px solid transparent;
+}
+/* green wash on hover */
+.process-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,230,118,.09) 0%,rgba(118,255,3,.04) 50%,transparent 100%);
+  opacity:0;transition:opacity .4s;
+}
+/* bottom sweep bar */
+.process-card::after{
+  content:'';position:absolute;
+  bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--green),var(--accent));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .45s ease;
+}
+.process-card:hover::before{opacity:1;}
+.process-card:hover::after{transform:scaleX(1);}
+.process-card:hover{
+  background:#071510;
+  transform:translateY(-6px);
+  box-shadow:0 16px 48px rgba(0,0,0,.55), 0 0 28px rgba(0,230,118,.08);
+  border-left-color:var(--green);
+}
+
+/* NUMBER — starts visible at 18%, blazes to full green on hover */
+.process-num{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:3.5rem;line-height:1;margin-bottom:1.5rem;
+  color:rgba(0,230,118,.22);          /* visible even at rest */
+  transition:color .4s, text-shadow .4s;
+}
+.process-card:hover .process-num{
+  color:var(--green);                 /* full #00e676 */
+  text-shadow:
+    0 0 20px rgba(0,230,118,.7),
+    0 0 50px rgba(0,230,118,.35),
+    0 0 80px rgba(0,230,118,.15);
+}
+
+/* ICON — brighten + pop on hover */
+.process-icon{
+  font-size:2rem;margin-bottom:1rem;display:block;
+  transition:transform .35s, filter .35s;
+  filter:brightness(.85) grayscale(.2);
+}
+.process-card:hover .process-icon{
+  transform:scale(1.2) rotate(-5deg);
+  filter:brightness(1.2) grayscale(0)
+         drop-shadow(0 0 10px rgba(0,230,118,.55));
+}
+
+/* TITLE */
+.process-title{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:1.05rem;color:rgba(255,255,255,.82);margin-bottom:.5rem;
+  transition:color .3s;
+}
+.process-card:hover .process-title{ color:var(--accent); }
+
+/* DESC */
+.process-desc{
+  font-size:.86rem;color:rgba(200,230,201,.48);line-height:1.65;
+  transition:color .3s;
+}
+.process-card:hover .process-desc{ color:rgba(200,230,201,.78); }
+
+/* PRODUCTS PREVIEW */
+#products-preview{background:var(--dark);}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem;margin-top:3rem;}
+.product-card{background:var(--mid);border:1px solid rgba(0,230,118,.08);border-radius:4px;overflow:hidden;transition:transform .35s,box-shadow .35s,border-color .35s;position:relative;}
+.product-card:hover{transform:translateY(-8px);box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 40px rgba(118,255,3,.08);border-color:rgba(118,255,3,.25);}
+/* shimmer sweep on hover */
+.product-card::before{content:'';position:absolute;top:0;left:-75%;width:50%;height:100%;background:linear-gradient(105deg,transparent 40%,rgba(118,255,3,.07) 50%,transparent 60%);transform:skewX(-15deg);transition:left .7s ease;z-index:2;pointer-events:none;}
+.product-card:hover::before{left:130%;}
+.product-img{height:180px;display:flex;align-items:center;justify-content:center;font-size:4.5rem;background:linear-gradient(135deg,rgba(0,230,118,.06),rgba(0,188,212,.06));position:relative;overflow:hidden;transition:background .4s;}
+.product-card:hover .product-img{background:linear-gradient(135deg,rgba(0,230,118,.12),rgba(0,188,212,.1));}
+/* floating emoji */
+.product-img .emoji-float{display:block;animation:emojiIdle 4s ease-in-out infinite;}
+.product-card:hover .product-img .emoji-float{animation:emojiHover .5s ease-out forwards;}
+@keyframes emojiIdle{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-6px) rotate(2deg);}}
+@keyframes emojiHover{0%{transform:scale(1);}40%{transform:scale(1.25) rotate(-8deg);}100%{transform:scale(1.12) rotate(0deg);}}
+.product-badge{position:absolute;top:12px;right:12px;background:rgba(118,255,3,.15);border:1px solid rgba(118,255,3,.3);color:var(--accent);font-size:.7rem;letter-spacing:.08em;padding:.2rem .6rem;border-radius:100px;text-transform:uppercase;animation:badgePulse 3s ease-in-out infinite;}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(118,255,3,.3);}50%{box-shadow:0 0 0 5px rgba(118,255,3,.0);}}
+.product-body{padding:1.4rem;}
+.product-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff;margin-bottom:.35rem;transition:color .3s;}
+.product-card:hover .product-name{color:var(--accent);}
+.product-desc{font-size:.84rem;color:rgba(200,230,201,.55);line-height:1.6;margin-bottom:.9rem;}
+.product-meta{display:flex;justify-content:space-between;align-items:center;}
+.product-material{font-size:.73rem;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;}
+.product-link{font-size:.8rem;color:var(--accent);text-decoration:none;font-family:'Syne',sans-serif;font-weight:600;transition:letter-spacing .2s,text-shadow .3s;}
+.product-link:hover{letter-spacing:.06em;text-shadow:0 0 12px rgba(118,255,3,.5);}
+
+/* IMPACT */
+#impact{background:var(--dark2);}
+.impact-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+
+/* ── LIFECYCLE WHEEL ── */
+.impact-visual{position:relative;height:460px;display:flex;align-items:center;justify-content:center;}
+.cycle-wheel{position:relative;width:420px;height:420px;}
+
+/* Outer dashed ring */
+.cycle-ring-outer{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px dashed rgba(0,230,118,.18);
+  animation:spinSlow 40s linear infinite;
+}
+/* Inner solid ring */
+.cycle-ring-inner{
+  position:absolute;
+  inset:52px;border-radius:50%;
+  border:1px solid rgba(0,230,118,.1);
+}
+/* Glow pulse behind center */
+.cycle-glow{
+  position:absolute;
+  top:50%;left:50%;
+  width:130px;height:130px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(118,255,3,.18) 0%,rgba(0,230,118,.08) 45%,transparent 72%);
+  animation:glowPulse 3s ease-in-out infinite;
+}
+@keyframes glowPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.8;}50%{transform:translate(-50%,-50%) scale(1.25);opacity:1;}}
+
+/* Center hub */
+.cycle-hub{
+  position:absolute;top:50%;left:50%;
+  width:90px;height:90px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:var(--dark2);
+  border:2px solid rgba(0,230,118,.3);
+  box-shadow:0 0 30px rgba(0,230,118,.2),inset 0 0 20px rgba(0,230,118,.06);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.6rem;
+  filter:drop-shadow(0 0 14px rgba(0,230,118,.55));
+  z-index:3;
+}
+
+/* Each node sits on the ring radius */
+.cycle-node{
+  position:absolute;
+  top:50%;left:50%;
+  width:0;height:0;
+  /* JS sets --ang; CSS rotates the arm then translates out */
+  transform:rotate(var(--ang)) translateY(-175px);
+}
+.cycle-node-inner{
+  transform:rotate(calc(-1 * var(--ang)));  /* counter-rotate so label stays upright */
+  display:flex;flex-direction:column;align-items:center;gap:.45rem;
+  width:90px;margin-left:-45px;
+}
+.cycle-node-icon{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(0,230,118,.07);
+  border:1.5px solid rgba(0,230,118,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;
+  transition:background .3s,box-shadow .3s,transform .3s;
+  box-shadow:0 0 12px rgba(0,230,118,.1);
+}
+.cycle-node:hover .cycle-node-icon{
+  background:rgba(0,230,118,.16);
+  box-shadow:0 0 22px rgba(0,230,118,.35);
+  transform:scale(1.15);
+}
+.cycle-node-label{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:.65rem;letter-spacing:.07em;text-transform:uppercase;
+  color:rgba(200,230,201,.65);
+  text-align:center;
+  line-height:1.3;
+  transition:color .3s;
+  white-space:nowrap;
+}
+.cycle-node:hover .cycle-node-label{color:var(--accent);}
+
+/* Connector line from hub to node */
+.cycle-connector{
+  position:absolute;
+  top:50%;left:50%;
+  width:1px;height:130px;
+  transform-origin:top center;
+  background:linear-gradient(to bottom,rgba(0,230,118,.3),transparent);
+  /* angle set by JS */
+  transform:rotate(var(--ang)) translateX(-0.5px);
+  z-index:1;
+}
+
+/* Spinning dot on outer ring */
+.cycle-ring-dot{
+  position:absolute;top:50%;left:50%;
+  width:0;height:0;
+  animation:spinSlow 12s linear infinite;
+}
+.cycle-ring-dot::after{
+  content:'';
+  position:absolute;top:-210px;left:-5px;
+  width:10px;height:10px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 14px var(--accent);
+}
+
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+.impact-stats{display:flex;flex-direction:column;gap:1.5rem;margin-top:2.5rem;}
+.impact-stat-row{display:flex;align-items:center;gap:1.5rem;}
+.impact-stat-icon{font-size:1.5rem;width:48px;flex-shrink:0;}
+.impact-stat-val{font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--accent);}
+.impact-stat-text{font-size:.83rem;color:rgba(200,230,201,.55);margin-top:.1rem;}
+.impact-bar{height:3px;background:rgba(0,230,118,.1);border-radius:2px;margin-top:.5rem;overflow:hidden;}
+.impact-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:2px;transform-origin:left;animation:barFill 1.5s ease-out both;}
+@keyframes barFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* TESTIMONIALS */
+#testimonials{background:var(--dark);}
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;margin-top:3.5rem;}
+.testi-card{background:var(--mid);border:1px solid rgba(0,230,118,.06);padding:2rem;border-radius:4px;transition:transform .35s cubic-bezier(.25,.46,.45,.94),border-color .3s,box-shadow .35s;position:relative;overflow:hidden;}
+/* animated quote mark */
+.testi-card::before{content:'"';position:absolute;top:1rem;right:1.5rem;font-size:5rem;color:rgba(118,255,3,.06);font-family:Georgia,serif;line-height:1;transition:color .4s,transform .4s;}
+.testi-card:hover::before{color:rgba(118,255,3,.15);transform:scale(1.15) rotate(-5deg);}
+/* bottom border reveal */
+.testi-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:linear-gradient(90deg,var(--green),var(--accent));transition:width .5s ease;}
+.testi-card:hover::after{width:100%;}
+.testi-card:hover{transform:translateY(-7px);border-color:rgba(118,255,3,.22);box-shadow:0 20px 50px rgba(0,0,0,.4),0 0 25px rgba(0,230,118,.07);}
+.testi-stars{color:var(--warn);font-size:.85rem;margin-bottom:1rem;letter-spacing:.1em;}
+.testi-text{font-size:.88rem;line-height:1.7;color:rgba(200,230,201,.7);margin-bottom:1.5rem;}
+.testi-author{display:flex;align-items:center;gap:.8rem;}
+.testi-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;color:var(--dark);transition:transform .3s,box-shadow .3s;}
+.testi-card:hover .testi-avatar{transform:scale(1.1);box-shadow:0 0 18px rgba(118,255,3,.35);}
+.testi-name{font-family:'Syne',sans-serif;font-weight:600;font-size:.88rem;color:#fff;}
+.testi-role{font-size:.73rem;color:rgba(200,230,201,.4);}
+
+/* CTA */
+#cta{background:linear-gradient(135deg,var(--dark2),var(--dark));text-align:center;padding:8rem 3rem;position:relative;overflow:hidden;}
+#cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(118,255,3,.09),transparent);animation:ctaGlow 5s ease-in-out infinite;}
+@keyframes ctaGlow{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+/* grid lines */
+#cta::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,230,118,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,230,118,.04) 1px,transparent 1px);background-size:60px 60px;animation:gridDrift 20s linear infinite;pointer-events:none;}
+@keyframes gridDrift{from{background-position:0 0;}to{background-position:60px 60px;}}
+#cta p{color:rgba(200,230,201,.55);max-width:480px;margin:.8rem auto 2.5rem;font-size:.95rem;line-height:1.7;position:relative;z-index:1;}
+.cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+/* CTA heading */
+#cta h2{position:relative;z-index:1;}
+
+/* FOOTER */
+footer{background:#020905;padding:4rem 3rem 2rem;border-top:1px solid rgba(0,230,118,.08);position:relative;z-index:2;}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem;}
+.footer-brand p{font-size:.85rem;color:rgba(200,230,201,.45);line-height:1.7;margin:.8rem 0 1.2rem;}
+.footer-socials{display:flex;gap:.8rem;}
+.footer-socials a{width:36px;height:36px;border:1px solid rgba(0,230,118,.15);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .3s,border-color .3s;}
+.footer-socials a:hover{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.35);}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--accent);}
+.footer-logo span{color:var(--teal);}
+.footer-col h4{font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,230,201,.5);margin-bottom:1.2rem;}
+.footer-col a{display:block;color:rgba(200,230,201,.45);font-size:.84rem;text-decoration:none;margin-bottom:.6rem;transition:color .2s;}
+.footer-col a:hover{color:var(--green);}
+.footer-bottom{border-top:1px solid rgba(0,230,118,.06);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;}
+.footer-bottom span{font-size:.78rem;color:rgba(200,230,201,.25);}
+.footer-bottom-links{display:flex;gap:1.5rem;}
+.footer-bottom-links a{font-size:.78rem;color:rgba(200,230,201,.3);text-decoration:none;transition:color .2s;}
+.footer-bottom-links a:hover{color:var(--green);}
+
+/* ORBS */
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:floatOrb linear infinite;}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(0,230,118,.15),transparent 70%);right:-100px;top:80px;animation-duration:18s;}
+.orb2{width:350px;height:350px;background:radial-gradient(circle,rgba(0,188,212,.12),transparent 70%);right:200px;bottom:50px;animation-duration:24s;animation-delay:-8s;}
+@keyframes floatOrb{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-25px) scale(1.05);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* REVEAL — base + variants */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .75s cubic-bezier(.25,.46,.45,.94),transform .75s cubic-bezier(.25,.46,.45,.94);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+/* from left */
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .75s .1s cubic-bezier(.25,.46,.45,.94),transform .75s .1s cubic-bezier(.25,.46,.45,.94);}
+.reveal-left.visible{opacity:1;transform:translateX(0);}
+/* from right */
+.reveal-right{opacity:0;transform:translateX(40px);transition:opacity .75s .1s cubic-bezier(.25,.46,.45,.94),transform .75s .1s cubic-bezier(.25,.46,.45,.94);}
+.reveal-right.visible{opacity:1;transform:translateX(0);}
+/* scale in */
+.reveal-scale{opacity:0;transform:scale(.88);transition:opacity .65s cubic-bezier(.25,.46,.45,.94),transform .65s cubic-bezier(.25,.46,.45,.94);}
+.reveal-scale.visible{opacity:1;transform:scale(1);}
+
+.reveal-delay-1{transition-delay:.1s}
+.reveal-delay-2{transition-delay:.2s}
+.reveal-delay-3{transition-delay:.3s}
+.reveal-delay-4{transition-delay:.4s}
+.reveal-delay-5{transition-delay:.5s}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .nav-links,.nav-cta{display:none;}
+  .hamburger{display:flex;}
+  section.content{padding:5rem 1.5rem;}
+  .stat-ribbon{padding:1.5rem;gap:2rem;}
+  .impact-inner{grid-template-columns:1fr;}
+  .impact-visual{height:360px;}
+  .cycle-wheel{width:330px;height:330px;}
+  .cycle-ring-dot::after{top:-165px;}
+  .cycle-node{transform:rotate(var(--ang)) translateY(-137px);}
+  .cycle-node-icon{width:42px;height:42px;font-size:1.1rem;}
+  .cycle-node-label{font-size:.58rem;}
+  .cycle-connector{height:105px;}
+  .footer-top{grid-template-columns:1fr 1fr;}
+  footer{padding:3rem 1.5rem 1.5rem;}
+  .footer-bottom{flex-direction:column;text-align:center;}
+  nav{padding:1rem 1.5rem;}
+  .slide-content{padding:8rem 1.5rem 5rem;}
+  .slide-thumbs{display:none;}
+  .slide-arrows{right:1.5rem;}
+  .slide-controls{left:1.5rem;}
+}
+@media(max-width:600px){
+  .footer-top{grid-template-columns:1fr;}
+  .stat-ribbon{gap:1.5rem;}
+  .stat-num{font-size:1.8rem;}
+}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div class="noise-overlay"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="index.html" class="logo">Hit<span>Shi</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About Us</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="contact.html" class="nav-cta">Get Quote</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <ul class="mobile-nav">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About Us</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</div>
+
+<!-- HERO SLIDESHOW -->
+<section id="hero">
+  <div class="slide active" id="slide-0">
+    <div class="slide-bg">
+      <img class="slide-img" src="https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=1600&q=80" alt="Recycling Factory">
+      <div class="slide-overlay"></div>
+    </div>
+    <div class="slide-content">
+      <div class="hero-tag"><span class="dot"></span> Sustainable Manufacturing</div>
+      <h1>Turning <span class="hl">Waste Into</span> <span class="outline">Wonder</span></h1>
+      <p class="slide-sub">We transform post-consumer plastic waste into premium, durable products — closing the loop on pollution, one bottle at a time.</p>
+      <div class="hero-btns">
+        <a href="products.html" class="btn-primary">Explore Products</a>
+        <a href="about.html" class="btn-ghost">Our Story →</a>
+      </div>
+    </div>
+  </div>
+  <div class="slide" id="slide-1">
+    <div class="slide-bg">
+      <video class="slide-video" autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1600&q=80">
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+      </video>
+      <div class="slide-overlay"></div>
+    </div>
+    <div class="slide-content">
+      <div class="hero-tag"><span class="dot"></span> Watch Us Work</div>
+      <h1>The <span class="hl">Future</span> Is <span class="outline">Circular</span></h1>
+      <p class="slide-sub">See our state-of-the-art recycling process in action. 12 tons of plastic transformed daily into products that last a lifetime.</p>
+      <div class="hero-btns">
+        <a href="services.html" class="btn-primary">Our Process</a>
+        <a href="contact.html" class="btn-ghost">Partner With Us →</a>
+      </div>
+    </div>
+  </div>
+  <div class="slide" id="slide-2">
+    <div class="slide-bg">
+      <img class="slide-img" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80" alt="Green Products">
+      <div class="slide-overlay"></div>
+    </div>
+    <div class="slide-content">
+      <div class="hero-tag"><span class="dot"></span> 100% Recycled</div>
+      <h1>Products <span class="hl">Built For</span> <span class="outline">Tomorrow</span></h1>
+      <p class="slide-sub">Over 340 premium products crafted from recycled plastics. Stronger, lighter, and kinder to the planet than ever before.</p>
+      <div class="hero-btns">
+        <a href="products.html" class="btn-primary">View Products</a>
+        <a href="blog.html" class="btn-ghost">Read Stories →</a>
+      </div>
+    </div>
+  </div>
+  <div class="slide" id="slide-3">
+    <div class="slide-bg">
+      <img class="slide-img" src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1600&q=80" alt="Ocean Cleanup">
+      <div class="slide-overlay"></div>
+    </div>
+    <div class="slide-content">
+      <div class="hero-tag"><span class="dot"></span> Ocean Recovery</div>
+      <h1>Saving <span class="hl">4.2 Million</span> <span class="outline">Kilograms</span></h1>
+      <p class="slide-sub">We've recovered over 4.2M kg from oceans and coastlines. Every product you buy contributes to a cleaner ocean.</p>
+      <div class="hero-btns">
+        <a href="about.html" class="btn-primary">Our Impact</a>
+        <a href="contact.html" class="btn-ghost">Join the Mission →</a>
+      </div>
+    </div>
+  </div>
+  <div class="slide-thumbs">
+    <div class="slide-thumb active"><img src="https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=120&q=60" alt=""></div>
+    <div class="slide-thumb"><img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=120&q=60" alt=""></div>
+    <div class="slide-thumb"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&q=60" alt=""></div>
+    <div class="slide-thumb"><img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=120&q=60" alt=""></div>
+  </div>
+  <div class="slide-controls">
+    <div class="slide-dot active" data-slide="0"></div>
+    <div class="slide-dot" data-slide="1"></div>
+    <div class="slide-dot" data-slide="2"></div>
+    <div class="slide-dot" data-slide="3"></div>
+  </div>
+  <div class="slide-arrows">
+    <button class="slide-arrow" id="prev-slide">←</button>
+    <button class="slide-arrow" id="next-slide">→</button>
+  </div>
+  <div class="slide-progress" id="slide-progress"></div>
+</section>
+
+<!-- STAT RIBBON -->
+<div class="stat-ribbon">
+  <div class="stat"><span class="stat-num" data-count="12">0</span><span class="stat-label">Tons Recycled Daily</span></div>
+  <div class="stat"><span class="stat-num" data-count="340">0</span><span class="stat-label">Products Manufactured</span></div>
+  <div class="stat"><span class="stat-num" data-count="98">0</span><span class="stat-label">% Waste Diverted</span></div>
+  <div class="stat"><span class="stat-num" data-count="60">0</span><span class="stat-label">Global Partners</span></div>
+  <div class="stat"><span class="stat-num" data-count="4200000">0</span><span class="stat-label">kg Ocean Plastic Recovered</span></div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <div class="marquee-item">♻ Recycle ♻ <span class="sep">—</span> Reduce Plastic Waste <span class="sep">—</span> ♻ Sustainable Future <span class="sep">—</span> Zero Landfill Policy <span class="sep">—</span> ♻ Circular Economy <span class="sep">—</span> Eco-Certified Products <span class="sep">—</span> ♻ Green Manufacturing <span class="sep">—</span> Carbon Neutral <span class="sep">—</span></div>
+    <div class="marquee-item">♻ Recycle ♻ <span class="sep">—</span> Reduce Plastic Waste <span class="sep">—</span> ♻ Sustainable Future <span class="sep">—</span> Zero Landfill Policy <span class="sep">—</span> ♻ Circular Economy <span class="sep">—</span> Eco-Certified Products <span class="sep">—</span> ♻ Green Manufacturing <span class="sep">—</span> Carbon Neutral <span class="sep">—</span></div>
+  </div>
+</div>
+
+<!-- PROCESS -->
+<section class="content" id="process" style="background:var(--dark2)">
+  <div class="section-label reveal">Our Process</div>
+  <h2 class="reveal">From <span class="hl">Pollution</span><br>To Production</h2>
+  <div class="process-grid">
+    <div class="process-card reveal reveal-delay-1"><div class="process-num">01</div><div class="process-icon">🗑️</div><div class="process-title">Collection</div><div class="process-desc">We partner with municipalities and waste collectors to source post-consumer plastic from oceans, streets, and landfills.</div></div>
+    <div class="process-card reveal reveal-delay-2"><div class="process-num">02</div><div class="process-icon">🔬</div><div class="process-title">Sorting & Analysis</div><div class="process-desc">AI-powered optical sorting classifies plastic by type with 99.7% accuracy before processing.</div></div>
+    <div class="process-card reveal reveal-delay-3"><div class="process-num">03</div><div class="process-icon">⚙️</div><div class="process-title">Processing</div><div class="process-desc">Plastics are shredded, washed, melted, and pelletized into ultra-pure recycled resin ready for manufacturing.</div></div>
+    <div class="process-card reveal reveal-delay-4"><div class="process-num">04</div><div class="process-icon">🏭</div><div class="process-title">Manufacturing</div><div class="process-desc">Our solar-powered facilities mold recycled pellets into premium products meeting virgin plastic standards.</div></div>
+    <div class="process-card reveal reveal-delay-1"><div class="process-num">05</div><div class="process-icon">✅</div><div class="process-title">Quality Control</div><div class="process-desc">Every product passes rigorous stress, chemical, and UV-resistance testing before leaving our facility.</div></div>
+    <div class="process-card reveal reveal-delay-2"><div class="process-num">06</div><div class="process-icon">🌍</div><div class="process-title">Distribution</div><div class="process-desc">Carbon-neutral logistics delivers your eco-friendly products worldwide with full chain-of-custody traceability.</div></div>
+  </div>
+</section>
+
+<!-- PRODUCTS PREVIEW -->
+<section class="content" id="products-preview">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <div class="section-label reveal">Featured Products</div>
+      <h2 class="reveal">Built From <span class="hl">Tomorrow's</span> Thinking</h2>
+    </div>
+    <a href="products.html" class="btn-ghost reveal" style="white-space:nowrap">View All Products →</a>
+  </div>
+  <div class="products-grid">
+
+    <div class="product-card reveal reveal-delay-1">
+      <div class="product-img">
+        <div class="product-badge">Bestseller</div>
+        <img src="images/platiccontainers.jpg" alt="PureStore Containers" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;">
+      </div>
+      <div class="product-body">
+        <div class="product-name">PureStore Containers</div>
+        <div class="product-desc">Food-safe storage containers meeting FDA standards. Stackable, airtight, BPA-free.</div>
+        <div class="product-meta"><span class="product-material">rPP Grade A</span><a href="products.html" class="product-link">View →</a></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal reveal-delay-2">
+      <div class="product-img">
+        <img src="images/bike_auto_parts.png" alt="Bike Auto Parts" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;background:#0a1a12;">
+      </div>
+      <div class="product-body">
+        <div class="product-name">RecyDeck Lumber</div>
+        <div class="product-desc">Structural-grade recycled plastic lumber for decking, fencing, and marine applications.</div>
+        <div class="product-meta"><span class="product-material">rHDPE Blend</span><a href="products.html" class="product-link">View →</a></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal reveal-delay-3">
+      <div class="product-img">
+        <div class="product-badge">New</div>
+        <img src="images/OIP.webp" alt="OIP Product" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;">
+      </div>
+      <div class="product-body">
+        <div class="product-name">EcoSit Garden Chair</div>
+        <div class="product-desc">Weather-resistant outdoor chair made from 48 recycled PET bottles. UV-stable for 25+ years.</div>
+        <div class="product-meta"><span class="product-material">100% rPET</span><a href="products.html" class="product-link">View →</a></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal reveal-delay-4">
+      <div class="product-img">
+        <img src="images/buckets.webp" alt="Plastic Buckets" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;">
+      </div>
+      <div class="product-body">
+        <div class="product-name">TrailMark Tiles</div>
+        <div class="product-desc">Interlocking paving tiles for pathways, patios, and playgrounds. Shock-absorbing and skid-proof.</div>
+        <div class="product-meta"><span class="product-material">Mixed rPlastic</span><a href="products.html" class="product-link">View →</a></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="content" id="impact" style="background:var(--dark2)">
+  <div class="impact-inner">
+    <div>
+      <div class="section-label reveal">Environmental Impact</div>
+      <h2 class="reveal">Real Numbers,<br><span class="hl">Real Change</span></h2>
+      <div class="impact-stats">
+        <div class="impact-stat-row reveal"><div class="impact-stat-icon">🌊</div><div><div class="impact-stat-val">4.2M kg</div><div class="impact-stat-text">Ocean plastic removed since 2018</div><div class="impact-bar"><div class="impact-bar-fill" style="width:85%"></div></div></div></div>
+        <div class="impact-stat-row reveal reveal-delay-1"><div class="impact-stat-icon">💨</div><div><div class="impact-stat-val">12,800 t</div><div class="impact-stat-text">CO₂ emissions avoided annually</div><div class="impact-bar"><div class="impact-bar-fill" style="width:72%"></div></div></div></div>
+        <div class="impact-stat-row reveal reveal-delay-2"><div class="impact-stat-icon">⚡</div><div><div class="impact-stat-val">100%</div><div class="impact-stat-text">Facilities powered by renewable energy</div><div class="impact-bar"><div class="impact-bar-fill" style="width:100%"></div></div></div></div>
+        <div class="impact-stat-row reveal reveal-delay-3"><div class="impact-stat-icon">💧</div><div><div class="impact-stat-val">98.6%</div><div class="impact-stat-text">Process water recycled in closed loop</div><div class="impact-bar"><div class="impact-bar-fill" style="width:97%"></div></div></div></div>
+      </div>
+    </div>
+    <div class="impact-visual reveal">
+      <div class="cycle-wheel" id="cycleWheel">
+        <!-- Rings -->
+        <div class="cycle-ring-outer"></div>
+        <div class="cycle-ring-inner"></div>
+        <!-- Spinning accent dot -->
+        <div class="cycle-ring-dot"></div>
+        <!-- Glow + hub -->
+        <div class="cycle-glow"></div>
+        <div class="cycle-hub">♻</div>
+        <!-- 6 cycle nodes — angles set by JS -->
+        <div class="cycle-node" id="cn0"><div class="cycle-node-inner"><div class="cycle-node-icon">🗑️</div><div class="cycle-node-label">Waste<br>Collection</div></div></div>
+        <div class="cycle-node" id="cn1"><div class="cycle-node-inner"><div class="cycle-node-icon">🔬</div><div class="cycle-node-label">Sorting &amp;<br>Analysis</div></div></div>
+        <div class="cycle-node" id="cn2"><div class="cycle-node-inner"><div class="cycle-node-icon">⚙️</div><div class="cycle-node-label">Processing</div></div></div>
+        <div class="cycle-node" id="cn3"><div class="cycle-node-inner"><div class="cycle-node-icon">🏭</div><div class="cycle-node-label">Manufacturing</div></div></div>
+        <div class="cycle-node" id="cn4"><div class="cycle-node-inner"><div class="cycle-node-icon">📦</div><div class="cycle-node-label">Packaging</div></div></div>
+        <div class="cycle-node" id="cn5"><div class="cycle-node-inner"><div class="cycle-node-icon">🌍</div><div class="cycle-node-label">Distribution</div></div></div>
+        <!-- Connector lines -->
+        <div class="cycle-connector" id="cc0"></div>
+        <div class="cycle-connector" id="cc1"></div>
+        <div class="cycle-connector" id="cc2"></div>
+        <div class="cycle-connector" id="cc3"></div>
+        <div class="cycle-connector" id="cc4"></div>
+        <div class="cycle-connector" id="cc5"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="content" id="testimonials">
+  <div class="section-label reveal">Partners & Clients</div>
+  <h2 class="reveal">Trusted by <span class="hl">Changemakers</span></h2>
+  <div class="testi-grid">
+    <div class="testi-card reveal reveal-delay-1"><div class="testi-stars">★★★★★</div><p class="testi-text">"HitShi's recycled lumber replaced all our conventional timber in park furniture. Zero maintenance, double the lifespan, and our sustainability score skyrocketed."</p><div class="testi-author"><div class="testi-avatar">SM</div><div><div class="testi-name">Sofia Marchetti</div><div class="testi-role">Head of Parks — City of Barcelona</div></div></div></div>
+    <div class="testi-card reveal reveal-delay-2"><div class="testi-stars">★★★★★</div><p class="testi-text">"We switched our entire packaging line to HitShi containers. The quality is indistinguishable from virgin plastic, and our customers love the story behind the product."</p><div class="testi-author"><div class="testi-avatar">JK</div><div><div class="testi-name">James Kwan</div><div class="testi-role">VP Supply Chain — OceanBites Foods</div></div></div></div>
+    <div class="testi-card reveal reveal-delay-3"><div class="testi-stars">★★★★★</div><p class="testi-text">"The TrailMark tiles we installed in our schools have held up beautifully for 3 years. HitShi is what sustainability in manufacturing should look like."</p><div class="testi-author"><div class="testi-avatar">AR</div><div><div class="testi-name">Amira Rahman</div><div class="testi-role">Director — GreenBuild Foundation</div></div></div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" style="position:relative;z-index:2;">
+  <div class="section-label reveal" style="justify-content:center">Get Started</div>
+  <h2 class="reveal">Ready to <span class="hl">Close the Loop?</span></h2>
+  <p class="reveal">Join 60+ global partners choosing recycled plastic products that perform better and protect our planet.</p>
+  <div class="cta-btns">
+    <a href="contact.html" class="btn-primary reveal">Request a Quote</a>
+    <a href="products.html" class="btn-ghost reveal reveal-delay-1">Download Catalog</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">Hit<span>Shi</span></div>
+      <p>Transforming post-consumer plastic waste into premium, durable products — closing the loop on pollution.</p>
+      <div class="footer-socials">
+        <a href="#">🌐</a><a href="#">📘</a><a href="#">📸</a><a href="#">🐦</a>
+      </div>
+    </div>
+    <div class="footer-col"><h4>Company</h4><a href="about.html">About Us</a><a href="services.html">Services</a><a href="products.html">Products</a><a href="blog.html">Blog</a></div>
+    <div class="footer-col"><h4>Products</h4><a href="products.html">Garden Furniture</a><a href="products.html">Plastic Lumber</a><a href="products.html">Storage Containers</a><a href="products.html">Paving Tiles</a></div>
+    <div class="footer-col"><h4>Contact</h4><a href="/cdn-cgi/l/email-protection#5a323f3636351a12332e09323374393537"><span class="__cf_email__" data-cfemail="bad2dfd6d6d5faf2d3cee9d2d394d9d5d7">[email&#160;protected]</span></a><a href="tel:+1234567890">+1 (234) 567-890</a><a href="contact.html">Get a Quote</a></div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 HitShi Industries. All rights reserved.</span>
+    <div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Sitemap</a></div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ── CURSOR ── */
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.transform=`translate(${mx-6}px,${my-6}px)`;});
+(function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx-19}px,${ry-19}px)`;requestAnimationFrame(animRing);})();
+document.querySelectorAll('a,button,.product-card,.process-card,.testi-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='60px';ring.style.height='60px';ring.style.borderColor='var(--accent)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='38px';ring.style.height='38px';ring.style.borderColor='var(--green)';});
+});
+
+/* ── BG CANVAS ── */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize();window.addEventListener('resize',resize);
+class P{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*1.5+.3;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.a=Math.random()*.6+.1;this.c=Math.random()>.5?'0,230,118':'118,255,3';}update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0)this.x=W;if(this.x>W)this.x=0;if(this.y<0)this.y=H;if(this.y>H)this.y=0;}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(${this.c},${this.a})`;ctx.fill();}}
+for(let i=0;i<160;i++)particles.push(new P());
+function dc(){for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle=`rgba(0,230,118,${.05*(1-d/120)})`;ctx.lineWidth=.5;ctx.stroke();}}}
+(function anim(){ctx.clearRect(0,0,W,H);dc();particles.forEach(p=>{p.update();p.draw();});requestAnimationFrame(anim);})();
+
+/* ── SCROLL REVEAL ── */
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.1});
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale,.section-label,h2').forEach(el=>observer.observe(el));
+
+/* ── NAV ── */
+window.addEventListener('scroll',()=>{document.getElementById('navbar').style.background=scrollY>60?'rgba(5,14,10,0.95)':'rgba(5,14,10,0.6)';});
+document.getElementById('hamburger').addEventListener('click',function(){
+  this.classList.toggle('active');
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+document.querySelectorAll('.nav-links a,.mobile-nav a').forEach(a=>{if(a.getAttribute('href')==='index.html')a.classList.add('active');});
+
+/* ── SLIDESHOW ── */
+let currentSlide=0,slideInterval,progressInterval,progressWidth=0;
+const slides=document.querySelectorAll('.slide'),dots=document.querySelectorAll('.slide-dot'),thumbs=document.querySelectorAll('.slide-thumb'),progressBar=document.getElementById('slide-progress');
+const SLIDE_DURATION=5000;
+/* ── TEXT SCRAMBLE on hero h1 ── */
+const CHARS='♻⬡△◇●○⬢╱╲|/\\¤§';
+function scramble(el,finalText,duration=900){
+  let frame=0;const totalFrames=Math.round(duration/40);
+  const id=setInterval(()=>{
+    el.textContent=finalText.split('').map((c,i)=>{
+      if(c===' ')return ' ';
+      return frame/totalFrames>i/finalText.length?c:CHARS[Math.floor(Math.random()*CHARS.length)];
+    }).join('');
+    frame++;
+    if(frame>totalFrames){el.textContent=finalText;clearInterval(id);}
+  },40);
+}
+function scrambleSlideText(){
+  const outline=document.querySelector('.slide.active .outline');
+  if(outline&&outline.dataset.original){scramble(outline,outline.dataset.original);}
+}
+document.querySelectorAll('.outline').forEach(el=>{el.dataset.original=el.textContent.trim();});
+setTimeout(scrambleSlideText,600);
+
+function goToSlide(n){
+  slides[currentSlide].classList.remove('active');dots[currentSlide].classList.remove('active');thumbs[currentSlide].classList.remove('active');
+  currentSlide=(n+slides.length)%slides.length;
+  slides[currentSlide].classList.add('active');dots[currentSlide].classList.add('active');thumbs[currentSlide].classList.add('active');
+  resetProgress();
+  setTimeout(scrambleSlideText,400);
+}
+function resetProgress(){progressWidth=0;progressBar.style.width='0%';clearInterval(progressInterval);progressInterval=setInterval(()=>{progressWidth+=100/(SLIDE_DURATION/100);progressBar.style.width=progressWidth+'%';if(progressWidth>=100)clearInterval(progressInterval);},100);}
+function startAuto(){slideInterval=setInterval(()=>goToSlide(currentSlide+1),SLIDE_DURATION);}
+document.getElementById('next-slide').addEventListener('click',()=>{clearInterval(slideInterval);goToSlide(currentSlide+1);startAuto();});
+document.getElementById('prev-slide').addEventListener('click',()=>{clearInterval(slideInterval);goToSlide(currentSlide-1);startAuto();});
+dots.forEach(d=>d.addEventListener('click',()=>{clearInterval(slideInterval);goToSlide(+d.dataset.slide);startAuto();}));
+thumbs.forEach((t,i)=>t.addEventListener('click',()=>{clearInterval(slideInterval);goToSlide(i);startAuto();}));
+startAuto();resetProgress();
+
+/* ── STAT COUNTERS ── */
+function animateCounters(){document.querySelectorAll('[data-count]').forEach(el=>{const target=+el.dataset.count;let current=0;const step=target/60;const intv=setInterval(()=>{current=Math.min(current+step,target);let display=Math.round(current);if(target>=1000000)display=(current/1000000).toFixed(1)+'M';else if(target>=1000)display=Math.round(current).toLocaleString();el.textContent=display;if(current>=target)clearInterval(intv);},25);});}
+setTimeout(animateCounters,1800);
+
+/* ── PRODUCT CARD 3D TILT ── */
+document.querySelectorAll('.product-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`translateY(-8px) rotateY(${x*12}deg) rotateX(${-y*10}deg)`;
+  });
+  card.addEventListener('mouseleave',()=>{card.style.transform='';});
+});
+
+/* ── MAGNETIC BUTTONS ── */
+document.querySelectorAll('.btn-primary,.btn-ghost').forEach(btn=>{
+  btn.addEventListener('mousemove',e=>{
+    const r=btn.getBoundingClientRect();
+    const x=(e.clientX-r.left-r.width/2)*.35;
+    const y=(e.clientY-r.top-r.height/2)*.35;
+    btn.style.transform=`translate(${x}px,${y}px) translateY(-3px)`;
+  });
+  btn.addEventListener('mouseleave',()=>{
+    btn.style.transform='';
+    btn.style.transition='transform .4s cubic-bezier(.25,.46,.45,.94)';
+    setTimeout(()=>btn.style.transition='',400);
+  });
+});
+
+/* ── TESTI CARDS — staggered entrance ── */
+document.querySelectorAll('.testi-card').forEach((card,i)=>{
+  card.style.transitionDelay = (i*0.12)+'s';
+});
+
+/* ── IMPACT STAT BARS — trigger on scroll ── */
+const barObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.impact-bar-fill').forEach(bar=>{
+        bar.style.animationPlayState='running';
+      });
+    }
+  });
+},{threshold:.3});
+const impactSection=document.getElementById('impact');
+if(impactSection){barObs.observe(impactSection);}
+document.querySelectorAll('.impact-bar-fill').forEach(b=>{b.style.animationPlayState='paused';});
+
+/* ── CYCLE WHEEL — position 6 nodes evenly around the ring ── */
+(function initCycleWheel(){
+  const N=6;
+  for(let i=0;i<N;i++){
+    const angleDeg=-90+(360/N)*i;
+    const node=document.getElementById('cn'+i);
+    const conn=document.getElementById('cc'+i);
+    if(node)node.style.setProperty('--ang',angleDeg+'deg');
+    if(conn)conn.style.setProperty('--ang',angleDeg+'deg');
+  }
+})();
+
+/* ── CTA FLOATING PARTICLES ── */
+(function ctaParticles(){
+  const cta=document.getElementById('cta');
+  if(!cta)return;
+  // inject keyframes ONCE
+  const style=document.createElement('style');
+  style.textContent='@keyframes ctaFloat{0%{transform:translateY(0) scale(1);opacity:.7;}100%{transform:translateY(-140px) scale(0);opacity:0;}}';
+  document.head.appendChild(style);
+  function spawnParticle(){
+    const p=document.createElement('div');
+    const size=Math.random()*6+3;
+    const dur=(3+Math.random()*4).toFixed(1);
+    Object.assign(p.style,{
+      position:'absolute',bottom:'0',
+      left:Math.random()*100+'%',
+      width:size+'px',height:size+'px',
+      borderRadius:'50%',
+      background:Math.random()>.5?'rgba(118,255,3,.35)':'rgba(0,230,118,.3)',
+      pointerEvents:'none',zIndex:'0',
+      animation:'ctaFloat '+dur+'s ease-out forwards'
+    });
+    cta.appendChild(p);
+    setTimeout(()=>{if(p.parentNode)p.parentNode.removeChild(p);},dur*1000+100);
+  }
+  setInterval(spawnParticle,500);
+})();
+
+/* ── PROCESS CARDS — stagger on scroll ── */
+const procObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const cards=e.target.querySelectorAll('.process-card');
+      cards.forEach((c,i)=>{c.style.transitionDelay=(i*0.08)+'s';c.classList.add('visible');});
+    }
+  });
+},{threshold:.15});
+const procGrid=document.querySelector('.process-grid');
+if(procGrid)procObs.observe(procGrid);
+</script>
+</body>
+</html>

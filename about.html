@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hitshi — About Us</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--green:#00e676;--teal:#00bcd4;--dark:#050e0a;--dark2:#0a1a12;--mid:#112318;--accent:#76ff03;--text:#c8e6c9;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;cursor:none;}
+#cursor{width:12px;height:12px;background:var(--accent);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;mix-blend-mode:exclusion;}
+#cursor-ring{width:38px;height:38px;border:1.5px solid var(--green);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transition:width .3s,height .3s,border-color .3s;mix-blend-mode:exclusion;}
+#bg-canvas{position:fixed;inset:0;z-index:0;opacity:.25;}
+.noise-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.018;}
+
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:500;padding:1.2rem 3rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(18px);background:rgba(5,14,10,.6);border-bottom:1px solid rgba(0,230,118,.08);transition:background .4s;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:var(--accent);letter-spacing:-.04em;text-decoration:none;}
+.logo span{color:var(--teal);}
+.nav-links{display:flex;gap:2rem;list-style:none;}
+.nav-links a{color:var(--text);text-decoration:none;font-size:.85rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;position:relative;transition:color .3s;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;background:var(--accent);transition:width .3s;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
+.nav-cta{background:var(--accent);color:var(--dark);border:none;padding:.55rem 1.4rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;border-radius:2px;transition:background .3s,transform .2s;text-decoration:none;}
+.nav-cta:hover{background:var(--green);transform:translateY(-2px);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
+.hamburger span{width:24px;height:2px;background:var(--accent);display:block;transition:.3s;}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+.mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;background:rgba(5,14,10,.98);backdrop-filter:blur(20px);z-index:499;border-bottom:1px solid rgba(0,230,118,.12);transform:translateY(-10px);opacity:0;transition:transform .3s,opacity .3s;pointer-events:none;}
+.mobile-menu.open{display:block;transform:translateY(0);opacity:1;pointer-events:all;}
+.mobile-nav{list-style:none;padding:1.5rem 2rem;}
+.mobile-nav li{border-bottom:1px solid rgba(0,230,118,.06);}
+.mobile-nav a{display:block;padding:.9rem 0;color:var(--text);text-decoration:none;font-size:1rem;font-family:'Syne',sans-serif;font-weight:600;transition:color .2s;}
+.mobile-nav a:hover,.mobile-nav a.active{color:var(--accent);}
+
+/* SHARED */
+section{position:relative;z-index:2;padding:5rem 3rem;}
+.section-label{font-size:.73rem;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;}
+.section-label::before{content:'';display:block;width:30px;height:1px;background:var(--green);}
+h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2rem,4.5vw,3.5rem);letter-spacing:-.04em;color:#fff;line-height:1.05;}
+h2 .hl{color:var(--accent);}
+.btn-primary{background:var(--accent);color:var(--dark);border:none;padding:.85rem 2.2rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;border-radius:3px;transition:transform .2s,box-shadow .3s;box-shadow:0 0 30px rgba(118,255,3,.25);text-decoration:none;display:inline-block;}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(118,255,3,.45);}
+.btn-ghost{background:transparent;border:1px solid rgba(0,230,118,.35);color:var(--green);padding:.85rem 2.2rem;font-family:'Syne',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;border-radius:3px;transition:background .3s,transform .2s;text-decoration:none;display:inline-block;}
+.btn-ghost:hover{background:rgba(0,230,118,.08);transform:translateY(-3px);}
+.reveal{opacity:0;transform:translateY(35px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
+
+/* PAGE HERO */
+.page-hero{position:relative;z-index:2;min-height:55vh;display:flex;align-items:flex-end;overflow:hidden;}
+.page-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.page-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(5,14,10,.92) 40%,rgba(5,14,10,.5));}
+.page-hero-content{position:relative;z-index:2;padding:10rem 3rem 4rem;}
+.breadcrumb{display:flex;gap:.5rem;align-items:center;font-size:.78rem;color:rgba(200,230,201,.4);margin-bottom:1rem;}
+.breadcrumb a{color:rgba(200,230,201,.4);text-decoration:none;}
+.breadcrumb a:hover{color:var(--green);}
+.breadcrumb .sep{color:rgba(200,230,201,.2);}
+.page-hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.5rem,5vw,5rem);letter-spacing:-.04em;color:#fff;line-height:1;}
+.page-hero p{font-size:1rem;color:rgba(200,230,201,.55);margin-top:.8rem;max-width:520px;line-height:1.7;}
+
+/* ABOUT INTRO */
+.about-intro{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+.about-intro-text p{font-size:1rem;line-height:1.8;color:rgba(200,230,201,.65);margin-bottom:1.2rem;}
+.about-image-wrap{position:relative;}
+.about-image-wrap img{width:100%;border-radius:4px;display:block;filter:saturate(.8);}
+.about-image-badge{position:absolute;bottom:-1.5rem;left:-1.5rem;background:var(--accent);color:var(--dark);padding:1rem 1.5rem;border-radius:3px;font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;line-height:1.1;}
+.about-image-badge span{font-size:.75rem;font-weight:500;display:block;opacity:.7;}
+
+/* VALUES */
+.values-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-top:3.5rem;}
+.value-card{background:var(--mid);border:1px solid rgba(0,230,118,.08);padding:2rem;border-radius:4px;transition:transform .3s,border-color .3s;}
+.value-card:hover{transform:translateY(-6px);border-color:rgba(0,230,118,.25);}
+.value-icon{font-size:2.5rem;margin-bottom:1rem;}
+.value-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;color:#fff;margin-bottom:.5rem;}
+.value-desc{font-size:.86rem;color:rgba(200,230,201,.55);line-height:1.65;}
+
+/* TIMELINE */
+.timeline{margin-top:3.5rem;position:relative;}
+.timeline::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--accent),transparent);}
+.timeline-item{display:flex;gap:2rem;margin-bottom:3rem;padding-left:3rem;position:relative;}
+.timeline-dot{position:absolute;left:12px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid var(--dark2);box-shadow:0 0 12px var(--accent);}
+.timeline-year{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--accent);min-width:60px;line-height:1;}
+.timeline-content h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;margin-bottom:.4rem;}
+.timeline-content p{font-size:.86rem;color:rgba(200,230,201,.55);line-height:1.65;}
+
+/* TEAM CARDS */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;margin-top:3.5rem;}
+.team-card{
+  background:var(--mid);border:1px solid rgba(0,230,118,.08);border-radius:4px;
+  overflow:hidden;cursor:pointer;position:relative;
+  transition:transform .35s cubic-bezier(.25,.46,.45,.94),border-color .3s,box-shadow .35s;
+}
+.team-card:hover{transform:translateY(-10px);border-color:rgba(118,255,3,.3);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 35px rgba(118,255,3,.08);}
+.team-card:active{transform:translateY(-6px) scale(.98);}
+.team-photo {
+  height: 220px;
+  overflow: hidden;
+  background: var(--mid);
+}
+.team-card:hover .team-photo{background:linear-gradient(135deg,rgba(0,230,118,.15),rgba(0,188,212,.1));}
+.team-photo::after{content:'';position:absolute;top:-50%;left:-80%;width:45%;height:200%;background:linear-gradient(105deg,transparent 40%,rgba(118,255,3,.13),transparent 60%);transform:skewX(-15deg);transition:left .65s ease;}
+.team-card:hover .team-photo::after{left:130%;}
+.team-body{padding:1.3rem 1.3rem .9rem;}
+.team-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#fff;margin-bottom:.2rem;}
+.team-role{font-size:.8rem;color:var(--teal);margin-bottom:.6rem;letter-spacing:.03em;}
+.team-bio{font-size:.82rem;color:rgba(200,230,201,.5);line-height:1.6;}
+.team-cta{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.3rem;background:rgba(118,255,3,.04);border-top:1px solid rgba(118,255,3,.1);font-family:'Syne',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);transition:background .3s;}
+.team-cta .arrow{display:inline-block;transition:transform .25s;}
+.team-card:hover .team-cta{background:rgba(118,255,3,.1);}
+.team-card:hover .team-cta .arrow{transform:translateX(5px);}
+
+/* CERTIFICATIONS */
+.cert-grid{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:2.5rem;}
+.cert-badge{background:var(--mid);border:1px solid rgba(0,230,118,.12);padding:1rem 1.5rem;border-radius:3px;display:flex;align-items:center;gap:.8rem;font-size:.85rem;transition:border-color .3s,transform .25s;}
+.cert-badge:hover{border-color:rgba(0,230,118,.3);transform:translateY(-3px);}
+.cert-icon{font-size:1.5rem;}
+.cert-name{font-family:'Syne',sans-serif;font-weight:600;color:#fff;font-size:.88rem;}
+.cert-issuer{font-size:.75rem;color:rgba(200,230,201,.4);}
+
+/* FOOTER */
+footer{background:#020905;padding:4rem 3rem 2rem;border-top:1px solid rgba(0,230,118,.08);position:relative;z-index:2;}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem;}
+.footer-brand p{font-size:.85rem;color:rgba(200,230,201,.45);line-height:1.7;margin:.8rem 0 1.2rem;}
+.footer-socials{display:flex;gap:.8rem;}
+.footer-socials a{width:36px;height:36px;border:1px solid rgba(0,230,118,.15);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .3s;}
+.footer-socials a:hover{background:rgba(0,230,118,.1);}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--accent);}
+.footer-logo span{color:var(--teal);}
+.footer-col h4{font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,230,201,.5);margin-bottom:1.2rem;}
+.footer-col a{display:block;color:rgba(200,230,201,.45);font-size:.84rem;text-decoration:none;margin-bottom:.6rem;transition:color .2s;}
+.footer-col a:hover{color:var(--green);}
+.footer-bottom{border-top:1px solid rgba(0,230,118,.06);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;}
+.footer-bottom span{font-size:.78rem;color:rgba(200,230,201,.25);}
+.footer-bottom-links{display:flex;gap:1.5rem;}
+.footer-bottom-links a{font-size:.78rem;color:rgba(200,230,201,.3);text-decoration:none;}
+.footer-bottom-links a:hover{color:var(--green);}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(5,14,10,.85);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:var(--dark2);
+  border:1px solid rgba(0,230,118,.16);
+  border-radius:10px;
+  width:100%;max-width:720px;max-height:92vh;
+  overflow-y:auto;position:relative;
+  transform:translateY(36px) scale(.95);
+  transition:transform .42s cubic-bezier(.22,.68,0,1.2);
+  scrollbar-width:thin;scrollbar-color:rgba(0,230,118,.18) transparent;
+}
+.modal-overlay.open .modal-box{transform:translateY(0) scale(1);}
+
+/* Close */
+.modal-close{
+  position:absolute;top:1rem;right:1rem;
+  width:38px;height:38px;
+  background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.2);
+  border-radius:50%;color:var(--green);font-size:1.1rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;
+  transition:background .22s,transform .22s,border-color .22s;
+}
+.modal-close:hover{background:rgba(0,230,118,.2);border-color:var(--green);transform:rotate(90deg);}
+
+/* Header */
+.modal-head{
+  display:flex;gap:1.8rem;align-items:flex-start;
+  padding:2rem 2rem 1.6rem;
+  border-bottom:1px solid rgba(0,230,118,.08);
+  flex-wrap:wrap;
+}
+.modal-avatar{
+  width:104px;height:104px;flex-shrink:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(0,230,118,.12),rgba(0,188,212,.08));
+  border:2px solid rgba(0,230,118,.22);
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.9rem;box-shadow:0 0 28px rgba(0,230,118,.12);
+}
+.modal-info{flex:1;min-width:160px;}
+.modal-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.55rem;color:#fff;letter-spacing:-.03em;margin-bottom:.2rem;line-height:1.1;}
+.modal-role{font-size:.78rem;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.95rem;}
+.modal-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem;}
+.modal-tag{background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.15);color:rgba(200,230,201,.6);font-size:.66rem;padding:.18rem .62rem;border-radius:100px;letter-spacing:.05em;}
+
+/* Social pills */
+.modal-socials{display:flex;gap:.45rem;flex-wrap:wrap;}
+.modal-soc{
+  display:inline-flex;align-items:center;gap:.38rem;
+  padding:.3rem .88rem .3rem .52rem;
+  border:1px solid rgba(0,230,118,.18);border-radius:100px;
+  text-decoration:none;cursor:pointer;
+  background:rgba(0,230,118,.04);
+  transition:background .2s,border-color .2s,transform .18s;
+}
+.modal-soc:hover{background:rgba(0,230,118,.14);border-color:var(--green);transform:translateY(-2px);}
+.modal-soc-i{font-size:.82rem;line-height:1;}
+.modal-soc-l{font-size:.71rem;color:rgba(200,230,201,.72);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
+
+/* Body */
+.modal-body{padding:1.8rem 2rem;}
+.modal-bio{font-size:.9rem;line-height:1.82;color:rgba(200,230,201,.65);margin-bottom:1.9rem;padding-left:1rem;border-left:2px solid rgba(0,230,118,.22);font-style:italic;}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.9rem;}
+.modal-stat{background:rgba(17,35,24,.9);border:1px solid rgba(0,230,118,.08);border-radius:5px;padding:.9rem .7rem;text-align:center;}
+.modal-stat-n{font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;color:var(--accent);letter-spacing:-.04em;}
+.modal-stat-l{font-size:.63rem;color:rgba(200,230,201,.35);text-transform:uppercase;letter-spacing:.09em;margin-top:.2rem;}
+.modal-sec-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(200,230,201,.3);margin-bottom:.75rem;display:flex;align-items:center;gap:.6rem;}
+.modal-sec-title::before{content:'';width:14px;height:1px;background:rgba(0,230,118,.3);display:block;}
+.modal-hls{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.6rem;}
+.modal-hl{display:flex;align-items:flex-start;gap:.65rem;font-size:.84rem;color:rgba(200,230,201,.62);line-height:1.62;}
+.modal-hl::before{content:'→';color:var(--accent);flex-shrink:0;font-family:'Syne',sans-serif;font-weight:700;margin-top:.03rem;}
+
+/* CTA strip */
+.modal-ctas{display:flex;gap:.7rem;flex-wrap:wrap;padding:1.2rem 2rem 1.9rem;border-top:1px solid rgba(0,230,118,.06);}
+.modal-btn{display:inline-flex;align-items:center;gap:.45rem;padding:.62rem 1.2rem;border-radius:3px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;text-decoration:none;cursor:pointer;transition:transform .18s,box-shadow .25s,background .2s;}
+.modal-btn.pri{background:var(--accent);color:var(--dark);}
+.modal-btn.pri:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(118,255,3,.35);}
+.modal-btn.sec{border:1px solid rgba(0,230,118,.28);color:var(--green);}
+.modal-btn.sec:hover{background:rgba(0,230,118,.09);transform:translateY(-2px);}
+
+/* ═══════════════════════════
+   RESPONSIVE
+═══════════════════════════ */
+@media(max-width:900px){
+  .nav-links,.nav-cta{display:none;}
+  .hamburger{display:flex;}
+  section{padding:4rem 1.5rem;}
+  .about-intro{grid-template-columns:1fr;gap:3rem;}
+  .footer-top{grid-template-columns:1fr 1fr;}
+  footer{padding:3rem 1.5rem 1.5rem;}
+  .footer-bottom{flex-direction:column;text-align:center;}
+  nav{padding:1rem 1.5rem;}
+  .page-hero-content{padding:8rem 1.5rem 3rem;}
+}
+@media(max-width:640px){
+  .footer-top{grid-template-columns:1fr;}
+  /* Modal slides up from bottom on mobile */
+  .modal-overlay{padding:0;align-items:flex-end;}
+  .modal-box{max-height:88vh;border-radius:14px 14px 0 0;transform:translateY(60px);}
+  .modal-overlay.open .modal-box{transform:translateY(0);}
+  .modal-head{padding:1.5rem 1.2rem 1.2rem;gap:1rem;}
+  .modal-avatar{width:78px;height:78px;font-size:3rem;}
+  .modal-name{font-size:1.2rem;}
+  .modal-body{padding:1.3rem 1.2rem;}
+  .modal-stats{grid-template-columns:1fr 1fr;}
+  .modal-stats .modal-stat:nth-child(3){grid-column:span 2;}
+  .modal-ctas{padding:1rem 1.2rem 1.6rem;}
+}
+@media(max-width:360px){
+  .modal-stats{grid-template-columns:1fr;}
+  .modal-stats .modal-stat:nth-child(3){grid-column:span 1;}
+}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div class="noise-overlay"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="index.html" class="logo">Hit<span>Shi</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html" class="active">About Us</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="contact.html" class="nav-cta">Get Quote</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <ul class="mobile-nav">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html" class="active">About Us</a></li>
+    <li><a href="services.html">Services</a></li>
+    <li><a href="products.html">Products</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <img class="page-hero-img" src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1600&q=80" alt="About hitshi">
+  <div class="page-hero-overlay"></div>
+  <div class="page-hero-content">
+    <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">›</span><span>About Us</span></div>
+    <h1>We Are <span style="color:var(--accent)">hitshi</span></h1>
+    <p>Born from a vision to end plastic pollution — by turning it into something beautiful and useful.</p>
+  </div>
+</div>
+
+<!-- INTRO -->
+<section style="background:var(--dark)">
+  <div class="about-intro">
+    <div class="about-intro-text">
+      <div class="section-label reveal">Our Story</div>
+      <h2 class="reveal">We Started With<br><span class="hl">One Question</span></h2>
+      <p class="reveal" style="color:rgba(200,230,201,.65);margin-top:1.2rem;line-height:1.8;font-size:1rem;">What if the 380 million tons of plastic produced every year wasn't a problem — but a resource?</p>
+      <p class="reveal" style="color:rgba(200,230,201,.55);line-height:1.8;font-size:.95rem;">Founded in 2018 by environmental engineer Dr. Leila Hassan and materials scientist Prof. Nkosi Okafor, hitshi set out to prove that recycled plastics can equal — and even surpass — virgin materials in quality and performance.</p>
+      <p class="reveal" style="color:rgba(200,230,201,.55);line-height:1.8;font-size:.95rem;">Today we operate three manufacturing facilities across Europe, Asia, and the Americas, processing over 12 tons of post-consumer plastic daily and distributing 340+ product lines to 60+ global partners.</p>
+      <div class="reveal" style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <a href="contact.html" class="btn-primary">Work With Us</a>
+        <a href="services.html" class="btn-ghost">Our Services →</a>
+      </div>
+    </div>
+    <div class="about-image-wrap reveal">
+      <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=700&q=80" alt="hitshi Factory">
+      <div class="about-image-badge">2018<span>Founded</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section style="background:var(--dark2)">
+  <div class="section-label reveal">What We Stand For</div>
+  <h2 class="reveal">Our Core <span class="hl">Values</span></h2>
+  <div class="values-grid">
+    <div class="value-card reveal reveal-delay-1"><div class="value-icon">🌱</div><div class="value-title">Planet First</div><div class="value-desc">Every decision — from material sourcing to shipping — is filtered through its environmental impact. We measure, report, and improve relentlessly.</div></div>
+    <div class="value-card reveal reveal-delay-2"><div class="value-icon">🔬</div><div class="value-title">Radical Innovation</div><div class="value-desc">Our R&amp;D team holds 14 patents in recycled material processing. We push boundaries because the planet's future demands it.</div></div>
+    <div class="value-card reveal reveal-delay-3"><div class="value-icon">🤝</div><div class="value-title">True Partnership</div><div class="value-desc">We don't just sell products. We co-create sustainability strategies with every client, large or small, to maximize real-world impact.</div></div>
+    <div class="value-card reveal reveal-delay-4"><div class="value-icon">🔍</div><div class="value-title">Full Transparency</div><div class="value-desc">Every hitshi product comes with a digital traceability certificate — from the waste source to your doorstep, nothing is hidden.</div></div>
+    <div class="value-card reveal reveal-delay-1"><div class="value-icon">⚡</div><div class="value-title">Performance Driven</div><div class="value-desc">Sustainability without sacrifice. Our products must meet or exceed the performance of virgin plastic equivalents — no exceptions.</div></div>
+    <div class="value-card reveal reveal-delay-2"><div class="value-icon">🌏</div><div class="value-title">Global Thinking</div><div class="value-desc">Plastic pollution is a global crisis. Our supply chain, partnerships, and impact span 38 countries across 6 continents.</div></div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section style="background:var(--dark)">
+  <div class="section-label reveal">Our Journey</div>
+  <h2 class="reveal">Built Year by <span class="hl">Year</span></h2>
+  <div class="timeline">
+    <div class="timeline-item reveal"><div class="timeline-dot"></div><div class="timeline-year">2018</div><div class="timeline-content"><h4>hitshi Founded</h4><p>Dr. Leila Hassan and Prof. Nkosi Okafor launch hitshi in Rotterdam with a pilot plant processing 200kg/day of rPET.</p></div></div>
+    <div class="timeline-item reveal reveal-delay-1"><div class="timeline-dot"></div><div class="timeline-year">2019</div><div class="timeline-content"><h4>First Product Line</h4><p>EcoSit Garden Chair launches to critical acclaim, winning the European Green Product Award. 50,000 units sold in 8 months.</p></div></div>
+    <div class="timeline-item reveal reveal-delay-2"><div class="timeline-dot"></div><div class="timeline-year">2020</div><div class="timeline-content"><h4>Scale-Up &amp; Series A</h4><p>€12M Series A funding secured. Capacity expanded to 5 tons/day. RecyDeck Lumber line launched for construction sector.</p></div></div>
+    <div class="timeline-item reveal reveal-delay-3"><div class="timeline-dot"></div><div class="timeline-year">2021</div><div class="timeline-content"><h4>Ocean Plastic Program</h4><p>Partnership with 14 coastal communities launched, targeting ocean and shoreline plastic recovery across Southeast Asia.</p></div></div>
+    <div class="timeline-item reveal"><div class="timeline-dot"></div><div class="timeline-year">2022</div><div class="timeline-content"><h4>Asia-Pacific Expansion</h4><p>Second manufacturing facility opens in Singapore. Processing capacity reaches 8 tons/day. ISO 14001 certification achieved.</p></div></div>
+    <div class="timeline-item reveal reveal-delay-1"><div class="timeline-dot"></div><div class="timeline-year">2023</div><div class="timeline-content"><h4>Americas Launch</h4><p>Third facility opens in São Paulo, Brazil. North and South American distribution network established with 20+ new partners.</p></div></div>
+    <div class="timeline-item reveal reveal-delay-2"><div class="timeline-dot"></div><div class="timeline-year">2024</div><div class="timeline-content"><h4>Carbon Neutral Achieved</h4><p>100% renewable energy across all facilities. Carbon-neutral certification from Bureau Veritas. 340+ active product SKUs.</p></div></div>
+    <div class="timeline-item reveal reveal-delay-3"><div class="timeline-dot"></div><div class="timeline-year">2026</div><div class="timeline-content"><h4>Today — 12 Tons/Day</h4><p>12 tons processed daily, 60+ global partners, 4.2M kg of ocean plastic recovered. And we're just getting started.</p></div></div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section style="background:var(--dark2)" id="leadership">
+  <div class="section-label reveal">The People</div>
+  <h2 class="reveal">Meet Our <span class="hl">Leadership</span></h2>
+  <p class="reveal" style="color:rgba(200,230,201,.38);font-size:.82rem;margin-top:.5rem;letter-spacing:.04em;">↗ Click any card to view full profile &amp; social links</p>
+
+  <div class="team-grid">
+
+  <div class="team-card reveal reveal-delay-1" data-member="leila">
+    <div class="team-photo"><img src="images/test.jpg" alt="Dr. Leila Hassan" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"></div>
+    <div class="team-body">
+      <div class="team-name">Dr. Leila Hassan</div>
+      <div class="team-role">Co-Founder &amp; CEO</div>
+      <div class="team-bio">Environmental engineer with 18 years in circular economy design. Former advisor to UNEP.</div>
+    </div>
+    <div class="team-cta"><span>View Profile</span><span class="arrow">→</span></div>
+  </div>
+
+  <div class="team-card reveal reveal-delay-2" data-member="nkosi">
+    <div class="team-photo"><img src="images/img.png" alt="Prof. Nkosi Okafor" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"></div>
+    <div class="team-body">
+      <div class="team-name">Prof. Nkosi Okafor</div>
+      <div class="team-role">Co-Founder &amp; CTO</div>
+      <div class="team-bio">Materials scientist and holder of 9 recycling patents. PhD from MIT, former Shell R&amp;D Director.</div>
+    </div>
+    <div class="team-cta"><span>View Profile</span><span class="arrow">→</span></div>
+  </div>
+
+  <div class="team-card reveal reveal-delay-3" data-member="yuki">
+    <div class="team-photo"><img src="images/test.jpg" alt="Yuki Tanaka" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"></div>
+    <div class="team-body">
+      <div class="team-name">Yuki Tanaka</div>
+      <div class="team-role">Chief Operations Officer</div>
+      <div class="team-bio">Lean manufacturing expert who scaled three green-tech companies from seed to Series C.</div>
+    </div>
+    <div class="team-cta"><span>View Profile</span><span class="arrow">→</span></div>
+  </div>
+
+  <div class="team-card reveal reveal-delay-4" data-member="carlos">
+    <div class="team-photo"><img src="images/img.png" alt="Carlos Mendes" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"></div>
+    <div class="team-body">
+      <div class="team-name">Carlos Mendes</div>
+      <div class="team-role">VP Global Partnerships</div>
+      <div class="team-bio">20 years in sustainable supply chain. Former Unilever Global Procurement Director.</div>
+    </div>
+    <div class="team-cta"><span>View Profile</span><span class="arrow">→</span></div>
+  </div>
+
+  <div class="team-card reveal reveal-delay-5" data-member="sara">
+    <div class="team-photo"><img src="images/test.jpg" alt="Sara Ahmed" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"></div>
+    <div class="team-body">
+      <div class="team-name">Sara Ahmed</div>
+      <div class="team-role">Head of Sustainability</div>
+      <div class="team-bio">Climate policy expert with 12 years in ESG reporting and green certification frameworks.</div>
+    </div>
+    <div class="team-cta"><span>View Profile</span><span class="arrow">→</span></div>
+  </div>
+
+</div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section style="background:var(--dark)">
+  <div class="section-label reveal">Credentials</div>
+  <h2 class="reveal">Certified <span class="hl">Sustainable</span></h2>
+  <div class="cert-grid">
+    <div class="cert-badge reveal"><div class="cert-icon">🏆</div><div><div class="cert-name">ISO 14001:2015</div><div class="cert-issuer">Environmental Management</div></div></div>
+    <div class="cert-badge reveal reveal-delay-1"><div class="cert-icon">🌿</div><div><div class="cert-name">GRS Certified</div><div class="cert-issuer">Global Recycled Standard</div></div></div>
+    <div class="cert-badge reveal reveal-delay-2"><div class="cert-icon">⚡</div><div><div class="cert-name">Carbon Neutral</div><div class="cert-issuer">Bureau Veritas 2024</div></div></div>
+    <div class="cert-badge reveal reveal-delay-3"><div class="cert-icon">🌊</div><div><div class="cert-name">Ocean Bound Plastic</div><div class="cert-issuer">Verifor Certified</div></div></div>
+    <div class="cert-badge reveal"><div class="cert-icon">🔬</div><div><div class="cert-name">FDA Food Safe</div><div class="cert-issuer">rPP &amp; rHDPE Grades</div></div></div>
+    <div class="cert-badge reveal reveal-delay-1"><div class="cert-icon">🏅</div><div><div class="cert-name">B Corp Certified</div><div class="cert-issuer">Score: 127.4</div></div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">Hit<span>Shi</span></div>
+      <p>Transforming post-consumer plastic waste into premium, durable products — closing the loop on pollution.</p>
+      <div class="footer-socials"><a href="#">🌐</a><a href="#">📘</a><a href="#">📸</a><a href="#">🐦</a></div>
+    </div>
+    <div class="footer-col"><h4>Company</h4><a href="about.html">About Us</a><a href="services.html">Services</a><a href="products.html">Products</a><a href="blog.html">Blog</a></div>
+    <div class="footer-col"><h4>Products</h4><a href="products.html">Garden Furniture</a><a href="products.html">Plastic Lumber</a><a href="products.html">Storage Containers</a><a href="products.html">Paving Tiles</a></div>
+    <div class="footer-col"><h4>Contact</h4><a href="mailto:hello@hitshi.com">hello@hitshi.com</a><a href="tel:+1234567890">+1 (234) 567-890</a><a href="contact.html">Get a Quote</a></div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 hitshi Industries. All rights reserved.</span>
+    <div class="footer-bottom-links"><a href="#">Privacy</a><a href="#">Terms</a></div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════
+     MODAL MARKUP
+═══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="mName">
+  <div class="modal-box" id="modalBox">
+
+    <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+
+    <div class="modal-head">
+      <div class="modal-avatar" id="mAvatar"></div>
+      <div class="modal-info">
+        <div class="modal-name"  id="mName"></div>
+        <div class="modal-role"  id="mRole"></div>
+        <div class="modal-tags"  id="mTags"></div>
+        <div class="modal-socials" id="mSocials"></div>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-bio" id="mBio"></p>
+      <div class="modal-stats" id="mStats"></div>
+      <div class="modal-sec-title">Key Highlights</div>
+      <div class="modal-hls" id="mHighlights"></div>
+    </div>
+
+    <div class="modal-ctas" id="mCTAs"></div>
+
+  </div>
+</div>
+
+<script>
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0, my=0, rx=0, ry=0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.transform = `translate(${mx-6}px,${my-6}px)`;
+});
+(function animRing(){
+  rx += (mx-rx)*.12; ry += (my-ry)*.12;
+  ring.style.transform = `translate(${rx-19}px,${ry-19}px)`;
+  requestAnimationFrame(animRing);
+})();
+function curBig(){ ring.style.width='60px'; ring.style.height='60px'; ring.style.borderColor='var(--accent)'; }
+function curNorm(){ ring.style.width='38px'; ring.style.height='38px'; ring.style.borderColor='var(--green)'; }
+document.querySelectorAll('a,button,.value-card,.team-card,.cert-badge').forEach(el=>{
+  el.addEventListener('mouseenter', curBig);
+  el.addEventListener('mouseleave', curNorm);
+});
+
+/* ── CANVAS ── */
+const canvas = document.getElementById('bg-canvas'), ctx = canvas.getContext('2d');
+let W, H, pts = [];
+function resize(){ W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+class P {
+  constructor(){ this.x=Math.random()*W; this.y=Math.random()*H; this.r=Math.random()*1.2+.3; this.vx=(Math.random()-.5)*.25; this.vy=(Math.random()-.5)*.25; this.a=Math.random()*.5+.1; this.c=Math.random()>.5?'0,230,118':'118,255,3'; }
+  update(){ this.x+=this.vx; this.y+=this.vy; if(this.x<0)this.x=W; if(this.x>W)this.x=0; if(this.y<0)this.y=H; if(this.y>H)this.y=0; }
+  draw(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fillStyle=`rgba(${this.c},${this.a})`; ctx.fill(); }
+}
+for(let i=0;i<120;i++) pts.push(new P());
+(function anim(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+    const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<100){ ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.strokeStyle=`rgba(0,230,118,${.04*(1-d/100)})`; ctx.lineWidth=.5; ctx.stroke(); }
+  }
+  pts.forEach(p=>{ p.update(); p.draw(); });
+  requestAnimationFrame(anim);
+})();
+
+/* ── SCROLL REVEAL ── */
+const obs = new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); }); },{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+/* ── NAV ── */
+window.addEventListener('scroll', ()=>{
+  document.getElementById('navbar').style.background = scrollY>60 ? 'rgba(5,14,10,.95)' : 'rgba(5,14,10,.6)';
+});
+document.getElementById('hamburger').addEventListener('click', function(){
+  this.classList.toggle('active');
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+
+/* ════════════════════════════════════════
+   MEMBER DATA
+════════════════════════════════════════ */
+const MEMBERS = {
+  leila: {
+    avatar: '👩‍🔬',
+    name: 'Dr. Leila Hassan',
+    role: 'Co-Founder & CEO',
+    tags: ['Circular Economy','Environmental Eng.','UNEP Advisor','Policy Advocacy','Climate Tech'],
+    bio: "Dr. Leila Hassan is a globally recognised environmental engineer with 18 years designing circular economy systems across Europe, Africa and the Middle East. Before co-founding hitshi, she spent six years as a senior technical advisor to UNEP's Sustainable Materials Management Programme, shaping plastic waste policy in 34 countries. She holds a PhD in Environmental Systems Engineering from ETH Zurich and an MSc from Imperial College London.",
+    stats: [['18+','Years Experience'],['34','Countries Influenced'],['9','Awards Won']],
+    highlights: [
+      "Led UNEP's global plastic waste policy framework adopted by 34 nations in 2019.",
+      'Named in Forbes 50 Women Reshaping Sustainability (2023 & 2024).',
+      'Keynote speaker at COP27, WEF Davos, and the EU Green Deal Summit.',
+      'Co-authored 14 peer-reviewed papers on circular plastic systems.',
+      'Raised €42M Series A round from impact investors in 2021.'
+    ],
+    socials: [
+      {icon:'💼', label:'LinkedIn',    url:'https://linkedin.com'},
+      {icon:'𝕏',  label:'X / Twitter', url:'https://x.com'},
+      {icon:'🌐', label:'Website',     url:'#'},
+      {icon:'📧', label:'Email',       url:'mailto:leila@hitshi.com'}
+    ],
+    email:'leila@hitshi.com'
+  },
+  nkosi: {
+    avatar: '👨‍🔬',
+    name: 'Prof. Nkosi Okafor',
+    role: 'Co-Founder & CTO',
+    tags: ['Materials Science','Polymer Eng.','9 Patents','MIT PhD','R&D Leadership'],
+    bio: "Prof. Nkosi Okafor is a world-leading materials scientist specialising in advanced polymer recycling and upcycling. He holds 9 patents in recycled plastic processing technology, a PhD from MIT, and spent 11 years as Shell's Global R&D Director for Advanced Materials before co-founding hitshi. He is also a Visiting Professor of Materials Engineering at Delft University of Technology.",
+    stats: [['9','Patents Held'],['11yrs','Shell R&D'],['60+','Research Papers']],
+    highlights: [
+      "Developed hitshi's proprietary UV-stabilisation process — the core of our 25-year product warranty.",
+      'Named MIT Technology Review Innovator Under 50 (2016).',
+      'Patents in rHDPE structural extrusion, rPET fibre spinning, and food-contact PP grades.',
+      'Visiting Professor of Materials Engineering, Delft University of Technology.',
+      "Recipient of the Royal Academy of Engineering's MacRobert Award (2022)."
+    ],
+    socials: [
+      {icon:'💼', label:'LinkedIn',       url:'https://linkedin.com'},
+      {icon:'🔬', label:'Google Scholar', url:'https://scholar.google.com'},
+      {icon:'𝕏',  label:'X / Twitter',   url:'https://x.com'},
+      {icon:'📧', label:'Email',          url:'mailto:nkosi@hitshi.com'}
+    ],
+    email:'nkosi@hitshi.com'
+  },
+  yuki: {
+    avatar: '👩‍💼',
+    name: 'Yuki Tanaka',
+    role: 'Chief Operations Officer',
+    tags: ['Lean Manufacturing','Scale-Up Expert','Series C','Green Tech Ops','INSEAD MBA'],
+    bio: "Yuki Tanaka is an operations leader with an exceptional track record scaling green-technology businesses. Prior to hitshi she served as COO at three climate-tech startups — all of which reached Series C under her operational leadership. She is a certified Lean Six Sigma Black Belt and holds an MBA from INSEAD. She oversees hitshi's three global manufacturing facilities and a supply chain spanning 38 countries.",
+    stats: [['3','Companies to Series C'],['38','Countries'],['380+','Staff Managed']],
+    highlights: [
+      "Scaled hitshi's Rotterdam facility from 200 kg/day to 12 tonnes/day in under 4 years.",
+      'Implemented Lean manufacturing system reducing production waste by 38%.',
+      'Oversees 380+ full-time staff across Rotterdam, Singapore, and São Paulo.',
+      'Certified Lean Six Sigma Black Belt, MBA from INSEAD.',
+      'Named Operations Leader of the Year, GreenBiz 2024.'
+    ],
+    socials: [
+      {icon:'💼', label:'LinkedIn',    url:'https://linkedin.com'},
+      {icon:'𝕏',  label:'X / Twitter', url:'https://x.com'},
+      {icon:'📧', label:'Email',       url:'mailto:yuki@hitshi.com'}
+    ],
+    email:'yuki@hitshi.com'
+  },
+  carlos: {
+    avatar: '👨‍💼',
+    name: 'Carlos Mendes',
+    role: 'VP Global Partnerships',
+    tags: ['Supply Chain','Sustainable Procurement','Unilever Alumnus','B2B Growth','Global Markets'],
+    bio: "Carlos Mendes brings 20 years of sustainable supply chain leadership to hitshi, most recently as Global Procurement Director at Unilever — where he managed an €8B annual procurement budget with a mandate to eliminate single-use plastic from Unilever's global supply chain. He joined hitshi in 2021 to build its commercial partner network, now spanning 60+ strategic partners across 38 countries.",
+    stats: [['20+','Years Experience'],['60+','Partners Built'],['€8B','Budget Managed']],
+    highlights: [
+      'Built hitshi\'s commercial partner network from 4 to 60+ partners in 3 years.',
+      'Former Unilever Global Procurement Director managing €8B annual budget.',
+      'Established distribution agreements in 38 countries across 5 continents.',
+      "Negotiated hitshi's first public sector agreement with the UK Crown Commercial Service.",
+      "Board member, Ellen MacArthur Foundation Circular Economy 100 programme."
+    ],
+    socials: [
+      {icon:'💼', label:'LinkedIn',    url:'https://linkedin.com'},
+      {icon:'𝕏',  label:'X / Twitter', url:'https://x.com'},
+      {icon:'📧', label:'Email',       url:'mailto:carlos@hitshi.com'}
+    ],
+    email:'carlos@hitshi.com'
+  }
+};
+
+/* ════════════════════════════════════════
+   MODAL LOGIC
+════════════════════════════════════════ */
+const overlay  = document.getElementById('modalOverlay');
+const modalBox = document.getElementById('modalBox');
+const closeBtn = document.getElementById('modalClose');
+
+function openModal(key) {
+  const m = MEMBERS[key];
+  if (!m) return;
+
+  document.getElementById('mAvatar').textContent = m.avatar;
+  document.getElementById('mName').textContent   = m.name;
+  document.getElementById('mRole').textContent   = m.role;
+  document.getElementById('mBio').textContent    = m.bio;
+
+  document.getElementById('mTags').innerHTML =
+    m.tags.map(t => `<span class="modal-tag">${t}</span>`).join('');
+
+  document.getElementById('mSocials').innerHTML =
+    m.socials.map(s =>
+      `<a class="modal-soc" href="${s.url}" target="_blank" rel="noopener">
+         <span class="modal-soc-i">${s.icon}</span>
+         <span class="modal-soc-l">${s.label}</span>
+       </a>`
+    ).join('');
+
+  document.getElementById('mStats').innerHTML =
+    m.stats.map(([n,l]) =>
+      `<div class="modal-stat">
+         <div class="modal-stat-n">${n}</div>
+         <div class="modal-stat-l">${l}</div>
+       </div>`
+    ).join('');
+
+  document.getElementById('mHighlights').innerHTML =
+    m.highlights.map(h => `<div class="modal-hl">${h}</div>`).join('');
+
+  document.getElementById('mCTAs').innerHTML = `
+    <a class="modal-btn pri" href="mailto:${m.email}">✉ Send Email</a>
+    <a class="modal-btn sec" href="${m.socials[0].url}" target="_blank" rel="noopener">💼 View LinkedIn</a>
+    <a class="modal-btn sec" href="contact.html">📋 Work Together</a>`;
+
+  /* re-bind cursor hover on freshly rendered links */
+  overlay.querySelectorAll('a,button').forEach(el => {
+    el.addEventListener('mouseenter', curBig);
+    el.addEventListener('mouseleave', curNorm);
+  });
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  modalBox.scrollTop = 0;
+}
+
+function closeModal() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* Open on card click */
+document.querySelectorAll('.team-card[data-member]').forEach(card => {
+  card.addEventListener('click', () => openModal(card.dataset.member));
+});
+
+/* Close — X button, backdrop, Escape */
+closeBtn.addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
